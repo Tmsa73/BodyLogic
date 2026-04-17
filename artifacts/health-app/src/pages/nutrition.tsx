@@ -225,47 +225,75 @@ export default function Nutrition() {
     });
   };
 
+  const compressImage = (file: File): Promise<{ base64: string; mimeType: string; previewUrl: string }> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        const MAX = 900;
+        let { width, height } = img;
+        if (width > MAX || height > MAX) {
+          if (width > height) { height = Math.round((height / width) * MAX); width = MAX; }
+          else { width = Math.round((width / height) * MAX); height = MAX; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, width, height);
+        const previewUrl = canvas.toDataURL("image/jpeg", 0.8);
+        const base64 = previewUrl.split(",")[1] ?? "";
+        URL.revokeObjectURL(objectUrl);
+        resolve({ base64, mimeType: "image/jpeg", previewUrl });
+      };
+      img.onerror = reject;
+      img.src = objectUrl;
+    });
+  };
+
   const handleImageScan = async (file: File) => {
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { toast({ title: "Image too large", description: "Please use an image under 10MB", variant: "destructive" }); return; }
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      const dataUrl = ev.target?.result as string;
-      setScanPreview(dataUrl);
-      setScanResult(null);
-      setIsScanning(true);
-      setOpen(true);
-      try {
-        const base64 = dataUrl.split(",")[1] ?? "";
-        const mimeType = file.type || "image/jpeg";
-        const res = await fetch(`${BASE_URL}/api/nutrition/analyze-food-image`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageBase64: base64, mimeType }),
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Analysis failed");
-        const data = await res.json();
-        setForm({
-          name: data.name ?? "",
-          calories: String(data.calories ?? ""),
-          protein: String(data.protein ?? ""),
-          carbs: String(data.carbs ?? ""),
-          fat: String(data.fat ?? ""),
-          fiber: String(data.fiber ?? ""),
-          sugar: String(data.sugar ?? ""),
-          mealType: data.mealType ?? "lunch",
-        });
-        setScanResult({ confidence: data.confidence ?? "medium", description: data.description ?? "" });
-        toast({ title: "🤖 Food recognized!", description: data.name });
-      } catch {
-        toast({ title: "Could not analyze image", description: "Try a clearer photo", variant: "destructive" });
-        setScanPreview(null);
-      } finally {
-        setIsScanning(false);
+    setScanResult(null);
+    setIsScanning(true);
+    setOpen(true);
+    try {
+      const { base64, mimeType, previewUrl } = await compressImage(file);
+      setScanPreview(previewUrl);
+      const res = await fetch(`${BASE_URL}/api/nutrition/analyze-food-image`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64: base64, mimeType }),
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error((errData as any)?.error ?? "Analysis failed");
       }
-    };
-    reader.readAsDataURL(file);
+      const data = await res.json();
+      const aiName = data.name ?? "";
+      const dbMatch = searchFoods(aiName, 1)[0];
+      const dbHit = dbMatch && aiName && dbMatch.name.toLowerCase().includes(aiName.toLowerCase().split(" ")[0]!);
+      setForm({
+        name: aiName,
+        calories: String(dbHit ? dbMatch.calories : (data.calories ?? "")),
+        protein: String(dbHit ? dbMatch.protein : (data.protein ?? "")),
+        carbs: String(dbHit ? dbMatch.carbs : (data.carbs ?? "")),
+        fat: String(dbHit ? dbMatch.fat : (data.fat ?? "")),
+        fiber: String(dbHit ? dbMatch.fiber : (data.fiber ?? "")),
+        sugar: String(dbHit ? dbMatch.sugar : (data.sugar ?? "")),
+        mealType: dbHit ? dbMatch.mealType : (data.mealType ?? "lunch"),
+      });
+      setScanResult({
+        confidence: dbHit ? "high" : (data.confidence ?? "medium"),
+        description: dbHit ? `Matched "${dbMatch.name}" from food database` : (data.description ?? ""),
+      });
+      toast({ title: "🤖 Food recognized!", description: aiName });
+    } catch (err: any) {
+      toast({ title: "Could not analyze image", description: err?.message ?? "Try a clearer photo", variant: "destructive" });
+      setScanPreview(null);
+    } finally {
+      setIsScanning(false);
+    }
   };
 
   if (isLoading || !summary) return <NutritionSkeleton />;

@@ -15,6 +15,20 @@ const openai = new OpenAI({
   baseURL: process.env["AI_INTEGRATIONS_OPENAI_BASE_URL"],
 });
 
+// Curated food reference list — used to ground AI image recognition to known items
+const FOOD_REFERENCE_NAMES = [
+  "Kabsa with Chicken","Kabsa with Lamb","Mandi Chicken","Mandi Lamb","Machboos","Harees","Jareesh","Saleeg","Margoog","Maqluba","Mansaf","Biryani",
+  "Shawarma Wrap Chicken","Shawarma Wrap Meat","Falafel Wrap","Hummus","Baba Ganoush","Labneh","Fattoush","Tabbouleh","Kibbeh","Warak Dawali","Fatteh",
+  "Mutton Saloona","Mufattah","Chicken Saloona","Samboosa","Luqaimat","Dates","Knafeh","Baklava","Umm Ali","Muhallabia","Shakshuka","Ful Medames",
+  "Arabic Bread Khubz","Za'atar Manakeesh","Halloumi","Dolma","Molokhia","Koshari","Mahyawa","Grilled Chicken","Grilled Salmon","Tuna Salad","Caesar Salad",
+  "Oatmeal","Scrambled Eggs","Boiled Eggs","Avocado Toast","Greek Yogurt","Banana","Apple","Mixed Fruits","Protein Shake","Smoothie Bowl","Overnight Oats",
+  "Pasta Bolognese","Pasta Carbonara","Pizza Margherita","Cheeseburger","Chicken Sandwich","Grilled Steak","Salmon Fillet","Chicken Breast","Rice with Vegetables",
+  "Lentil Soup","Vegetable Soup","Chicken Soup","Sushi Roll","Pad Thai","Fried Rice","Stir Fry","Noodles","Dumplings","Spring Rolls",
+  "Caesar Salad","Garden Salad","Greek Salad","Quinoa Bowl","Acai Bowl","Granola","Pancakes","Waffles","French Toast","Croissant","Muffin",
+  "Chocolate Cake","Cheesecake","Ice Cream","Fruit Salad","Watermelon","Orange","Grapes","Mixed Nuts","Almonds","Peanut Butter",
+];
+
+
 const router: IRouter = Router();
 
 router.get("/meals", async (req, res): Promise<void> => {
@@ -172,10 +186,15 @@ router.post("/nutrition/analyze-food-image", async (req, res): Promise<void> => 
               type: "text",
               text: `You are an expert nutritionist and food recognition AI with comprehensive knowledge of global cuisines including Middle Eastern, Arabian, Gulf, Levantine, North African, South Asian, East Asian, Mediterranean, Western, and all other world cuisines.
 
+FOOD DATABASE REFERENCE — Try to match the food in the image to one of these names exactly if possible:
+${FOOD_REFERENCE_NAMES.join(", ")}
+
+If the food matches one from the list above, use that exact name. Otherwise, use the best descriptive English name.
+
 Analyze this food image and return ONLY a JSON object (no markdown, no explanation) with these fields:
 {
-  "name": "dish name in English",
-  "calories": number,
+  "name": "dish name in English (prefer exact match from database list above)",
+  "calories": number (for a standard serving),
   "protein": number (grams),
   "carbs": number (grams),
   "fat": number (grams),
@@ -185,8 +204,6 @@ Analyze this food image and return ONLY a JSON object (no markdown, no explanati
   "confidence": "high" | "medium" | "low",
   "description": "brief 1-sentence description of what you see"
 }
-
-You recognize all foods including but not limited to: Kabsa, Mandi, Machboos, Biryani, Shawarma, Falafel, Hummus, Fattoush, Tabbouleh, Mansaf, Maqluba, Kibbeh, Warak Dawali, Harees, Margoog, Saleeg, Mufattah, Jareesh, Mutabbaq, Samboosa, Luqaimat, Dates, Knafeh, Baklava, Umm Ali, Muhallabia, Arabic bread (khubz), Ful medames, Fatteh, Shakshuka, Baba ganoush, Labneh, Za'atar dishes, Halloumi, Dolma, Molokhia, Koshari, Ful, Mahyawa, Saloona, Pasta, Pizza, Burger, Salad, Rice dishes, Grilled meats, Soups, Sandwiches, Smoothies, Eggs, Oats, Fruits, Vegetables, and any other food visible in the image.
 
 Use realistic nutritional values for a standard serving size. Make your best identification attempt even if the image is not perfect — set confidence to "low" if uncertain but still provide your best estimate. Only use "Unknown food" if the image contains absolutely no food.`,
             },

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useGetDashboard, useGetAiInsights, useGetWaterIntake, useGetSteps, useGetProgress, useGetLifeBalance, useGetNotifications, useMarkNotificationRead, useLogWater, getGetWaterIntakeQueryKey, getGetDashboardQueryKey, getGetNotificationsQueryKey } from "@workspace/api-client-react";
+import { useGetDashboard, useGetAiInsights, useGetWaterIntake, useGetSteps, useGetProgress, useGetLifeBalance, useGetNotifications, useMarkNotificationRead, useLogWater, useLogMeal, getGetWaterIntakeQueryKey, getGetDashboardQueryKey, getGetNotificationsQueryKey, getGetNutritionSummaryQueryKey, getGetMealsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Bell, Droplets, Footprints, Moon, Flame, Zap, Dumbbell, Utensils, Sparkles, Brain, X, Trophy, Crown, ChevronRight, Coins, Sword, CheckCheck, Star, BedDouble, Activity } from "lucide-react";
 import { Link } from "wouter";
@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLang } from "@/contexts/language-context";
 import { MealIqQuiz } from "@/components/meal-iq-quiz";
 import { playGamificationSound } from "@/lib/sounds";
+import { getFoodHistory, saveFoodToHistory, type FoodHistoryItem } from "@/lib/food-database";
 
 export default function Home() {
   const [notifOpen, setNotifOpen] = useState(false);
@@ -26,6 +27,36 @@ export default function Home() {
   const qc = useQueryClient();
   const { toast } = useToast();
   const { t } = useLang();
+
+  const logMeal = useLogMeal();
+  const [recentFoods] = useState<FoodHistoryItem[]>(() => getFoodHistory().slice(0, 4));
+  const [quickLoggedIds, setQuickLoggedIds] = useState<Set<number>>(new Set());
+
+  const quickLogFood = (food: FoodHistoryItem, idx: number) => {
+    if (quickLoggedIds.has(idx)) return;
+    logMeal.mutate({
+      data: {
+        name: food.name,
+        calories: food.calories,
+        protein: food.protein,
+        carbs: food.carbs,
+        fat: food.fat,
+        fiber: food.fiber,
+        sugar: food.sugar,
+        mealType: food.mealType as any,
+      }
+    }, {
+      onSuccess: () => {
+        saveFoodToHistory(food);
+        qc.invalidateQueries({ queryKey: getGetNutritionSummaryQueryKey() });
+        qc.invalidateQueries({ queryKey: getGetMealsQueryKey({ date: new Date().toISOString().split("T")[0]! }) });
+        qc.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
+        setQuickLoggedIds(prev => new Set([...prev, idx]));
+        toast({ title: `✅ ${food.name} logged!`, description: `${food.calories} kcal added` });
+        playGamificationSound("xp");
+      }
+    });
+  };
 
   const [acceptedChallenges] = useState<{id: string; title: string; icon: string; read: boolean}[]>(() => {
     try { return JSON.parse(localStorage.getItem("bodylogic-accepted-challenges") ?? "[]"); } catch { return []; }
@@ -562,6 +593,41 @@ export default function Home() {
             </Link>
           </div>
         </div>
+
+        {/* Recent Foods Quick Log */}
+        {recentFoods.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-xs font-black text-muted-foreground uppercase tracking-wider">🕐 Log Again</span>
+              <Link href="/nutrition" className="text-[10px] font-bold text-primary">All meals →</Link>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+              {recentFoods.map((food, idx) => {
+                const logged = quickLoggedIds.has(idx);
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => quickLogFood(food, idx)}
+                    disabled={logged || logMeal.isPending}
+                    className={cn(
+                      "shrink-0 flex flex-col items-start gap-1 px-3 py-2.5 rounded-2xl border text-left transition-all press-scale min-w-[120px] max-w-[140px]",
+                      logged
+                        ? "bg-primary/10 border-primary/30 opacity-80"
+                        : "bg-card border-border/50 hover:border-primary/30 hover:bg-primary/5"
+                    )}
+                  >
+                    <div className="flex items-center gap-1.5 w-full">
+                      <span className="text-base leading-none">{food.emoji}</span>
+                      {logged && <span className="text-[9px] font-black text-primary ml-auto">✓ Done</span>}
+                    </div>
+                    <p className="text-xs font-bold text-foreground leading-snug line-clamp-2">{food.name}</p>
+                    <p className="text-[10px] font-semibold text-muted-foreground">{food.calories} kcal</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* 30-Day Streak Calendar */}
         {progress && (
