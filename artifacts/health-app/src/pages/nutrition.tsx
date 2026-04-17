@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   useGetNutritionSummary, useGetMeals, useLogMeal, useDeleteMeal, useGetMealStreak, useGetDailyMealIQ,
   getGetNutritionSummaryQueryKey, getGetMealsQueryKey, getGetMealStreakQueryKey, getGetDailyMealIQQueryKey
@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { MealIqQuiz } from "@/components/meal-iq-quiz";
 import { playGamificationSound } from "@/lib/sounds";
+import { searchFoods, type FoodItem } from "@/lib/food-database";
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
@@ -111,8 +112,53 @@ export default function Nutrition() {
   const [scanPreview, setScanPreview] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<{ confidence: string; description: string } | null>(null);
+  const [suggestions, setSuggestions] = useState<FoodItem[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestionsFromDb, setSuggestionsFromDb] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleNameChange = (value: string) => {
+    setForm(f => ({ ...f, name: value }));
+    if (value.trim().length >= 2) {
+      const results = searchFoods(value);
+      setSuggestions(results);
+      setShowSuggestions(results.length > 0);
+      setSuggestionsFromDb(true);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      setSuggestionsFromDb(false);
+    }
+  };
+
+  const applyFoodSuggestion = (food: FoodItem) => {
+    setForm({
+      name: food.name,
+      calories: String(food.calories),
+      protein: String(food.protein),
+      carbs: String(food.carbs),
+      fat: String(food.fat),
+      fiber: String(food.fiber),
+      sugar: String(food.sugar),
+      mealType: food.mealType,
+    });
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setSuggestionsFromDb(false);
+    playGamificationSound("toggle");
+  };
   const today = new Date().toISOString().split("T")[0]!;
   
   const { data: summary, isLoading } = useGetNutritionSummary();
@@ -363,7 +409,7 @@ export default function Nutrition() {
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold">{t("nutrition_meals")}</h3>
             <div className="flex items-center gap-2">
-              <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setScanPreview(null); setScanResult(null); setForm({ name: "", calories: "", protein: "", carbs: "", fat: "", fiber: "", sugar: "", mealType: "lunch" }); } }}>
+              <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setScanPreview(null); setScanResult(null); setSuggestions([]); setShowSuggestions(false); setSuggestionsFromDb(false); setForm({ name: "", calories: "", protein: "", carbs: "", fat: "", fiber: "", sugar: "", mealType: "lunch" }); } }}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="h-9 gap-1.5 rounded-xl text-xs font-bold px-4">
                     <Plus className="w-3.5 h-3.5" /> {t("nutrition_add_meal")}
@@ -414,9 +460,52 @@ export default function Nutrition() {
                         AI confidence: <span className="font-black capitalize">{scanResult.confidence}</span> — review values below and adjust if needed
                       </div>
                     )}
-                    <div>
+                    <div ref={searchRef} className="relative">
                       <Label className="text-xs">{t("nutrition_meal_name")}</Label>
-                      <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Grilled Chicken & Rice" className="mt-1" />
+                      <div className="relative mt-1">
+                        <Input
+                          value={form.name}
+                          onChange={e => handleNameChange(e.target.value)}
+                          onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+                          placeholder="Search food or type a name…"
+                          className="pr-8"
+                          autoComplete="off"
+                        />
+                        {form.name && suggestionsFromDb && (
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                            <span className="text-[9px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">DB</span>
+                          </div>
+                        )}
+                      </div>
+                      {showSuggestions && suggestions.length > 0 && (
+                        <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-card border border-border/60 rounded-2xl shadow-xl overflow-hidden">
+                          <div className="px-3 pt-2 pb-1">
+                            <span className="text-[9px] font-black text-muted-foreground uppercase tracking-wider">Quick fill from database</span>
+                          </div>
+                          <div className="max-h-52 overflow-y-auto">
+                            {suggestions.map((food, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onMouseDown={() => applyFoodSuggestion(food)}
+                                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors text-left"
+                              >
+                                <span className="text-xl shrink-0 w-7 text-center">{food.emoji}</span>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-bold truncate">{food.name}</p>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    {food.calories} kcal · {food.protein}g protein · {food.carbs}g carbs · {food.fat}g fat
+                                  </p>
+                                </div>
+                                <span className="text-[10px] font-bold text-primary shrink-0 bg-primary/10 px-1.5 py-0.5 rounded-full capitalize">{food.mealType}</span>
+                              </button>
+                            ))}
+                          </div>
+                          <div className="px-3 py-1.5 border-t border-border/30 bg-muted/20">
+                            <p className="text-[9px] text-muted-foreground">Tap a food to auto-fill all nutritional values</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
