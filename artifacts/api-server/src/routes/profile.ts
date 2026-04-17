@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq, avg, count } from "drizzle-orm";
-import { db, profileTable, mealsTable, workoutsTable, sleepTable } from "@workspace/db";
+import { db, profileTable, mealsTable, workoutsTable, sleepTable, xpLogsTable } from "@workspace/db";
 import {
   GetProfileResponse,
   UpdateProfileBody,
@@ -67,6 +67,16 @@ router.get("/profile/stats", async (req, res): Promise<void> => {
     .from(workoutsTable)
     .where(gte(workoutsTable.loggedAt, weekAgo));
 
+  const xpLogs = await db.select().from(xpLogsTable);
+  const totalXP = xpLogs.reduce((s, l) => s + l.amount, 0);
+  const coins = Math.floor(totalXP / 10);
+  const LEVEL_THRESHOLDS = [0, 100, 250, 500, 900, 1500, 2500, 4000, 6000, 9000, 13000];
+  let level = 1;
+  for (let i = 1; i < LEVEL_THRESHOLDS.length; i++) {
+    if (totalXP >= (LEVEL_THRESHOLDS[i] ?? Infinity)) level = i + 1;
+    else break;
+  }
+
   const stats = {
     totalWorkouts: Number(totalWorkoutsResult?.count ?? 0),
     totalMealsLogged: Number(totalMealsResult?.count ?? 0),
@@ -75,9 +85,9 @@ router.get("/profile/stats", async (req, res): Promise<void> => {
     avgSleepHours: Number(avgSleepResult?.avg ?? 0),
     weeklyWorkouts: Number(weeklyWorkoutsResult?.count ?? 0),
     weightProgress: -1.5,
-    totalXP: 0,
-    level: 1,
-    coins: 0,
+    totalXP,
+    level,
+    coins,
   };
 
   res.json(GetProfileStatsResponse.parse(stats));

@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import {
   useGetNutritionSummary, useGetMeals, useLogMeal, useDeleteMeal, useGetMealStreak, useGetDailyMealIQ,
-  getGetNutritionSummaryQueryKey, getGetMealsQueryKey, getGetMealStreakQueryKey, getGetDailyMealIQQueryKey
+  getGetNutritionSummaryQueryKey, getGetMealsQueryKey, getGetMealStreakQueryKey, getGetDailyMealIQQueryKey,
+  getGetProgressQueryKey,
 } from "@workspace/api-client-react";
 import { useLang } from "@/contexts/language-context";
 import { useQueryClient } from "@tanstack/react-query";
@@ -180,8 +181,9 @@ export default function Nutrition() {
 
   const handleAdd = () => {
     if (!form.name || !form.calories) return;
+    const mealName = form.name;
     logMeal.mutate({ data: {
-      name: form.name,
+      name: mealName,
       calories: Number(form.calories),
       protein: Number(form.protein) || 0,
       carbs: Number(form.carbs) || 0,
@@ -190,13 +192,14 @@ export default function Nutrition() {
       sugar: Number(form.sugar) || 0,
       mealType: form.mealType as any,
     }}, {
-      onSuccess: () => {
+      onSuccess: (data: any) => {
         qc.invalidateQueries({ queryKey: getGetNutritionSummaryQueryKey() });
         qc.invalidateQueries({ queryKey: getGetMealsQueryKey({ date: today }) });
         qc.invalidateQueries({ queryKey: getGetMealStreakQueryKey() });
         qc.invalidateQueries({ queryKey: getGetDailyMealIQQueryKey() });
+        qc.invalidateQueries({ queryKey: getGetProgressQueryKey() });
         saveFoodToHistory({
-          name: form.name,
+          name: mealName,
           emoji: "🍽️",
           calories: Number(form.calories),
           protein: Number(form.protein) || 0,
@@ -209,7 +212,12 @@ export default function Nutrition() {
         });
         setOpen(false);
         setForm({ name: "", calories: "", protein: "", carbs: "", fat: "", fiber: "", sugar: "", mealType: "lunch" });
-        toast({ title: "Meal logged!", description: `${form.name} added to your log.` });
+        const xp = (data as any)?.xpEarned ?? 25;
+        const coins = (data as any)?.coinsEarned ?? 0;
+        toast({
+          title: `✅ ${mealName} logged!`,
+          description: `+${xp} XP${coins > 0 ? ` • +${coins} 🪙` : ""} earned`,
+        });
         playGamificationSound("xp");
       }
     });
@@ -300,8 +308,9 @@ export default function Nutrition() {
 
   const calorieGoal = summary.calorieGoal;
   const calPct = Math.min(100, Math.round((summary.totalCalories / calorieGoal) * 100));
+  const mealIQScore = mealIQ?.overallScore ?? 0;
   const mealIQGrade = () => {
-    const s = mealIQ?.score ?? 0;
+    const s = mealIQScore;
     if (!s) return { grade: "N/A", color: "text-muted-foreground", bg: "bg-muted" };
     if (s >= 25) return { grade: "A+", color: "text-primary", bg: "bg-primary/15" };
     if (s >= 22) return { grade: "A", color: "text-primary", bg: "bg-primary/15" };
@@ -415,7 +424,7 @@ export default function Nutrition() {
         </div>
 
         {/* Meal IQ */}
-        <MealIqQuiz score={mealIQ?.score}>
+        <MealIqQuiz score={mealIQScore}>
         <button className="bg-card rounded-2xl p-4 border border-border/50 w-full text-left press-scale hover-elevate">
           <div className="flex items-center gap-2 mb-3">
             <Brain className="w-4 h-4 text-primary" />
@@ -423,24 +432,24 @@ export default function Nutrition() {
           </div>
           <div className="flex items-center gap-4">
             <div className={cn("w-20 h-20 rounded-2xl flex flex-col items-center justify-center", iq.bg)}>
-              <span className={cn("text-3xl font-black", iq.color)}>{mealIQ?.score ?? 0}</span>
+              <span className={cn("text-3xl font-black", iq.color)}>{mealIQScore}</span>
               <span className="text-[10px] text-muted-foreground">/ 28</span>
             </div>
             <div className="flex-1 space-y-1">
               <div className="flex items-center gap-2">
                 <span className={cn("text-2xl font-black", iq.color)}>{iq.grade}</span>
-                <span className="text-xs text-muted-foreground">{mealIQ?.mealsAnalyzed ?? 0} meals analyzed</span>
+                <span className="text-xs text-muted-foreground">{mealIQ?.mealsCount ?? 0} meals analyzed</span>
               </div>
-              {mealIQ?.strengths?.slice(0, 2).map((s, i) => (
-                <p key={i} className="text-xs text-primary flex items-center gap-1">
-                  <span className="w-1 h-1 rounded-full bg-primary inline-block" />{s}
+              {mealIQ?.topStrength && (
+                <p className="text-xs text-primary flex items-center gap-1">
+                  <span className="w-1 h-1 rounded-full bg-primary inline-block" />{mealIQ.topStrength}
                 </p>
-              ))}
-              {mealIQ?.improvements?.slice(0, 1).map((s, i) => (
-                <p key={i} className="text-xs text-orange-400 flex items-center gap-1">
-                  <span className="w-1 h-1 rounded-full bg-orange-400 inline-block" />{s}
+              )}
+              {mealIQ?.topWeakness && (
+                <p className="text-xs text-orange-400 flex items-center gap-1">
+                  <span className="w-1 h-1 rounded-full bg-orange-400 inline-block" />{mealIQ.topWeakness}
                 </p>
-              ))}
+              )}
               {mealIQ?.suggestion && <p className="text-[10px] text-muted-foreground italic">{mealIQ.suggestion}</p>}
             </div>
           </div>

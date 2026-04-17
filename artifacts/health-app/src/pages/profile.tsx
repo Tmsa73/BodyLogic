@@ -48,6 +48,7 @@ const LIFE_BALANCE_ITEMS = [
   { id: "nutrition", label: "Food", color: "bg-primary", icon: Utensils, iconColor: "text-primary" },
   { id: "fitness", label: "Fit", color: "bg-secondary", icon: Dumbbell, iconColor: "text-secondary" },
   { id: "sleep", label: "Sleep", color: "bg-accent", icon: Moon, iconColor: "text-accent" },
+  { id: "hydration", label: "Water", color: "bg-blue-400", icon: Droplets, iconColor: "text-blue-400" },
   { id: "consistency", label: "Habit", color: "bg-yellow-400", icon: Flame, iconColor: "text-yellow-500" },
 ];
 
@@ -400,13 +401,14 @@ function MeTab({ profile, stats, progress, missions, balance, user, activeTitle,
             <TrendingUp className="w-3.5 h-3.5 text-muted-foreground ml-1" />
           </div>
         </div>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-5 gap-1.5">
           {LIFE_BALANCE_ITEMS.map(item => {
             const Icon = item.icon;
-            const score = item.id === "nutrition" ? balance.breakdown.nutritionScore
-              : item.id === "fitness" ? balance.breakdown.fitnessScore
-              : item.id === "sleep" ? balance.breakdown.sleepScore
-              : balance.breakdown.consistencyScore;
+            const score = item.id === "nutrition" ? balance.breakdown.nutrition
+              : item.id === "fitness" ? balance.breakdown.fitness
+              : item.id === "sleep" ? balance.breakdown.sleep
+              : item.id === "hydration" ? balance.breakdown.hydration
+              : balance.breakdown.consistency;
             return (
               <div key={item.id} className="space-y-2">
                 <div className="h-20 bg-muted rounded-2xl relative flex flex-col items-center justify-end overflow-hidden">
@@ -1198,7 +1200,10 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 }
 
 function EditProfileForm({ profile, onCancel }: { profile: any; onCancel: () => void }) {
+  const [age, setAge] = useState(profile.age ? profile.age.toString() : "");
+  const [height, setHeight] = useState(profile.height ? profile.height.toString() : "");
   const [weight, setWeight] = useState(profile.weight.toString());
+  const [gender, setGender] = useState(profile.gender ?? "unspecified");
   const [goal, setGoal] = useState<UpdateProfileBodyGoal>(profile.goal);
   const [activity, setActivity] = useState<UpdateProfileBodyActivityLevel>(profile.activityLevel);
   const [calories, setCalories] = useState(profile.dailyCalorieGoal.toString());
@@ -1212,12 +1217,36 @@ function EditProfileForm({ profile, onCancel }: { profile: any; onCancel: () => 
   });
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    update.mutate({ data: { weight: Number(weight), goal, activityLevel: activity, dailyCalorieGoal: Number(calories) } });
+    update.mutate({ data: {
+      age: age ? Number(age) : undefined,
+      height: height ? Number(height) : undefined,
+      weight: Number(weight),
+      gender: gender || undefined,
+      goal,
+      activityLevel: activity,
+      dailyCalorieGoal: Number(calories),
+    } });
   };
   return (
     <form onSubmit={onSubmit} className="p-4 space-y-4">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
+        <div className="space-y-1.5"><Label className="text-xs">Age (years)</Label><Input type="number" min={5} max={120} value={age} onChange={e => setAge(e.target.value)} className="h-9" placeholder="e.g. 25" /></div>
+        <div className="space-y-1.5"><Label className="text-xs">Height (cm)</Label><Input type="number" min={50} max={280} value={height} onChange={e => setHeight(e.target.value)} className="h-9" placeholder="e.g. 175" /></div>
         <div className="space-y-1.5"><Label className="text-xs">Weight (kg)</Label><Input type="number" value={weight} onChange={e => setWeight(e.target.value)} className="h-9" /></div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label className="text-xs">Gender</Label>
+          <Select value={gender} onValueChange={setGender}>
+            <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="unspecified">Prefer not to say</SelectItem>
+              <SelectItem value="male">Male</SelectItem>
+              <SelectItem value="female">Female</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="space-y-1.5"><Label className="text-xs">Calorie Goal</Label><Input type="number" value={calories} onChange={e => setCalories(e.target.value)} className="h-9" /></div>
       </div>
       <div className="space-y-1.5">

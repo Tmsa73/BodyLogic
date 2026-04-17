@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq, and, gte, lt, count } from "drizzle-orm";
-import { db, mealsTable, profileTable } from "@workspace/db";
+import { db, mealsTable, profileTable, xpLogsTable } from "@workspace/db";
 import {
   GetMealsResponse,
   LogMealBody,
@@ -70,7 +70,22 @@ router.post("/meals", async (req, res): Promise<void> => {
     notes: parsed.data.notes ?? null,
   }).returning();
 
-  res.status(201).json(meal);
+  const baseXP = 25;
+  const protein = parsed.data.protein ?? 0;
+  const fiber = parsed.data.fiber ?? 0;
+  const sugar = parsed.data.sugar ?? 0;
+  const calories = parsed.data.calories;
+  let bonusXP = 0;
+  if (protein >= 25) bonusXP += 10;
+  if (fiber >= 5) bonusXP += 10;
+  if (sugar <= 10) bonusXP += 5;
+  if (calories > 0 && calories <= 600) bonusXP += 5;
+  const totalXP = baseXP + bonusXP;
+  const coinsEarned = Math.floor(totalXP / 10);
+
+  await db.insert(xpLogsTable).values({ source: "meal_logged", amount: totalXP });
+
+  res.status(201).json({ ...meal, xpEarned: totalXP, coinsEarned });
 });
 
 router.delete("/meals/:id", async (req, res): Promise<void> => {
@@ -172,7 +187,7 @@ router.post("/nutrition/analyze-food-image", async (req, res): Promise<void> => 
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-5.2",
+      model: "gpt-4o",
       max_completion_tokens: 512,
       messages: [
         {
