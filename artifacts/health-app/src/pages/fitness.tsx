@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   useGetFitnessSummary, useGetWorkouts, useLogWorkout, useDeleteWorkout,
   useGetSleepLogs, useLogSleep, useGetSteps, useUpdateSteps,
   getGetWorkoutsQueryKey, getGetFitnessSummaryQueryKey, getGetSleepLogsQueryKey, getGetStepsQueryKey
 } from "@workspace/api-client-react";
+import { searchWorkouts, searchWorkoutHistory, saveWorkoutToHistory, getWorkoutHistory, type WorkoutItem } from "@/lib/workout-database";
 import { useLang } from "@/contexts/language-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
@@ -246,16 +247,62 @@ export default function Fitness() {
 function LogWorkoutDialog() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", duration: "", calories: "", type: "strength", intensity: "moderate" });
-  
+  const [suggestions, setSuggestions] = useState<(WorkoutItem & { isHistory?: boolean })[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
   const qc = useQueryClient();
   const { toast } = useToast();
   const logWorkout = useLogWorkout();
   const { t } = useLang();
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleWorkoutNameChange = (value: string) => {
+    setForm(f => ({ ...f, name: value }));
+    if (value.trim().length >= 1) {
+      const historyResults = searchWorkoutHistory(value, 2).map(h => ({ ...h, isHistory: true as const }));
+      const dbResults = searchWorkouts(value, 5).filter(d => !historyResults.some(h => h.name.toLowerCase() === d.name.toLowerCase())).map(d => ({ ...d, isHistory: false as const }));
+      const merged = [...historyResults, ...dbResults];
+      setSuggestions(merged);
+      setShowSuggestions(merged.length > 0);
+    } else if (value.trim().length === 0) {
+      const recent = getWorkoutHistory().slice(0, 4).map(h => ({ ...h, isHistory: true as const }));
+      setSuggestions(recent);
+      setShowSuggestions(recent.length > 0);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  const applyWorkoutSuggestion = (w: WorkoutItem) => {
+    setForm({
+      name: w.name,
+      type: w.type,
+      intensity: w.intensity,
+      duration: String(w.durationMinutes),
+      calories: String(w.caloriesBurned),
+    });
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
+
+  const typeEmoji: Record<string, string> = {
+    strength: "🏋️", cardio: "🏃", hiit: "🔥", yoga: "🧘", flexibility: "🤸", other: "⚡"
+  };
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.duration || !form.calories) return;
-    
     logWorkout.mutate({
       data: {
         name: form.name,
@@ -268,15 +315,24 @@ function LogWorkoutDialog() {
       onSuccess: () => {
         qc.invalidateQueries({ queryKey: getGetWorkoutsQueryKey() });
         qc.invalidateQueries({ queryKey: getGetFitnessSummaryQueryKey() });
+        saveWorkoutToHistory({
+          name: form.name,
+          emoji: typeEmoji[form.type] ?? "⚡",
+          type: form.type as any,
+          intensity: form.intensity as any,
+          durationMinutes: Number(form.duration),
+          caloriesBurned: Number(form.calories),
+        });
         setOpen(false);
-        toast({ title: "Workout logged!" });
+        toast({ title: "Workout logged! 💪" });
         setForm({ name: "", duration: "", calories: "", type: "strength", intensity: "moderate" });
+        setSuggestions([]);
       }
     });
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setSuggestions([]); setShowSuggestions(false); setForm({ name: "", duration: "", calories: "", type: "strength", intensity: "moderate" }); } }}>
       <DialogTrigger asChild>
         <Button size="sm" className="h-8 gap-1.5 rounded-xl text-xs font-bold">
           <Plus className="w-3.5 h-3.5" /> {t("fitness_add_workout")}
@@ -285,10 +341,60 @@ function LogWorkoutDialog() {
       <DialogContent className="max-w-[95vw] rounded-2xl">
         <DialogHeader><DialogTitle>{t("fitness_log_workout")}</DialogTitle></DialogHeader>
         <form onSubmit={onSubmit} className="space-y-3 pt-2">
-          <div>
+          {/* Workout Name with autocomplete */}
+          <div ref={searchRef} className="relative">
             <Label className="text-xs">{t("fitness_workout_name")}</Label>
-            <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Upper Body, 5k Run" className="mt-1" />
+            <Input
+              value={form.name}
+              onChange={e => handleWorkoutNameChange(e.target.value)}
+              onFocus={() => {
+                if (suggestions.length > 0) { setShowSuggestions(true); return; }
+                const recent = getWorkoutHistory().slice(0, 4).map(h => ({ ...h, isHistory: true as const }));
+                if (recent.length > 0) { setSuggestions(recent); setShowSuggestions(true); }
+              }}
+              placeholder="Search or type workout name…"
+              className="mt-1"
+              autoComplete="off"
+            />
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-card border border-border/60 rounded-2xl shadow-xl overflow-hidden">
+                <div className="px-3 pt-2 pb-1 flex items-center justify-between">
+                  <span className="text-[9px] font-black text-muted-foreground uppercase tracking-wider">
+                    {suggestions.some(s => s.isHistory) ? "Recent & Database" : "Workout Library"}
+                  </span>
+                  {suggestions.some(s => s.isHistory) && (
+                    <span className="text-[9px] font-black text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded-full">🕐 Your History</span>
+                  )}
+                </div>
+                <div className="max-h-48 overflow-y-auto">
+                  {suggestions.map((w, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onMouseDown={() => applyWorkoutSuggestion(w)}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors text-left"
+                    >
+                      <span className="text-xl shrink-0 w-7 text-center">{w.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-bold truncate">{w.name}</p>
+                          {w.isHistory && <span className="text-[9px] font-black text-amber-500 bg-amber-500/10 px-1 py-0.5 rounded shrink-0">Recent</span>}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground capitalize">
+                          {w.type} · {w.intensity} · {w.durationMinutes}min · {w.caloriesBurned} kcal
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-bold text-secondary shrink-0 bg-secondary/10 px-1.5 py-0.5 rounded-full capitalize">{w.type}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="px-3 py-1.5 border-t border-border/30 bg-muted/20">
+                  <p className="text-[9px] text-muted-foreground">Tap to auto-fill duration, calories & type</p>
+                </div>
+              </div>
+            )}
           </div>
+
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-xs">Type</Label>

@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { MealIqQuiz } from "@/components/meal-iq-quiz";
 import { playGamificationSound } from "@/lib/sounds";
-import { searchFoods, type FoodItem } from "@/lib/food-database";
+import { searchFoods, searchFoodHistory, saveFoodToHistory, getFoodHistory, type FoodItem, type FoodHistoryItem } from "@/lib/food-database";
 
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
@@ -112,7 +112,7 @@ export default function Nutrition() {
   const [scanPreview, setScanPreview] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<{ confidence: string; description: string } | null>(null);
-  const [suggestions, setSuggestions] = useState<FoodItem[]>([]);
+  const [suggestions, setSuggestions] = useState<(FoodItem & { isHistory?: boolean })[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestionsFromDb, setSuggestionsFromDb] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -131,11 +131,18 @@ export default function Nutrition() {
 
   const handleNameChange = (value: string) => {
     setForm(f => ({ ...f, name: value }));
-    if (value.trim().length >= 2) {
-      const results = searchFoods(value);
-      setSuggestions(results);
-      setShowSuggestions(results.length > 0);
-      setSuggestionsFromDb(true);
+    if (value.trim().length >= 1) {
+      const historyResults = searchFoodHistory(value, 3).map(h => ({ ...h, isHistory: true as const }));
+      const dbResults = searchFoods(value, 6).filter(d => !historyResults.some(h => h.name.toLowerCase() === d.name.toLowerCase())).map(d => ({ ...d, isHistory: false as const }));
+      const merged = [...historyResults, ...dbResults];
+      setSuggestions(merged);
+      setShowSuggestions(merged.length > 0);
+      setSuggestionsFromDb(merged.length > 0);
+    } else if (value.trim().length === 0) {
+      const recent = getFoodHistory().slice(0, 4).map(h => ({ ...h, isHistory: true as const }));
+      setSuggestions(recent);
+      setShowSuggestions(recent.length > 0);
+      setSuggestionsFromDb(recent.length > 0);
     } else {
       setSuggestions([]);
       setShowSuggestions(false);
@@ -188,6 +195,18 @@ export default function Nutrition() {
         qc.invalidateQueries({ queryKey: getGetMealsQueryKey({ date: today }) });
         qc.invalidateQueries({ queryKey: getGetMealStreakQueryKey() });
         qc.invalidateQueries({ queryKey: getGetDailyMealIQQueryKey() });
+        saveFoodToHistory({
+          name: form.name,
+          emoji: "🍽️",
+          calories: Number(form.calories),
+          protein: Number(form.protein) || 0,
+          carbs: Number(form.carbs) || 0,
+          fat: Number(form.fat) || 0,
+          fiber: Number(form.fiber) || 0,
+          sugar: Number(form.sugar) || 0,
+          mealType: form.mealType as any,
+          tags: ["custom"],
+        });
         setOpen(false);
         setForm({ name: "", calories: "", protein: "", carbs: "", fat: "", fiber: "", sugar: "", mealType: "lunch" });
         toast({ title: "Meal logged!", description: `${form.name} added to your log.` });
@@ -466,7 +485,11 @@ export default function Nutrition() {
                         <Input
                           value={form.name}
                           onChange={e => handleNameChange(e.target.value)}
-                          onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+                          onFocus={() => {
+                          if (suggestions.length > 0) { setShowSuggestions(true); return; }
+                          const recent = getFoodHistory().slice(0, 4).map(h => ({ ...h, isHistory: true as const }));
+                          if (recent.length > 0) { setSuggestions(recent); setShowSuggestions(true); setSuggestionsFromDb(true); }
+                        }}
                           placeholder="Search food or type a name…"
                           className="pr-8"
                           autoComplete="off"
@@ -479,8 +502,13 @@ export default function Nutrition() {
                       </div>
                       {showSuggestions && suggestions.length > 0 && (
                         <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-card border border-border/60 rounded-2xl shadow-xl overflow-hidden">
-                          <div className="px-3 pt-2 pb-1">
-                            <span className="text-[9px] font-black text-muted-foreground uppercase tracking-wider">Quick fill from database</span>
+                          <div className="px-3 pt-2 pb-1 flex items-center justify-between">
+                            <span className="text-[9px] font-black text-muted-foreground uppercase tracking-wider">
+                              {suggestions.some(s => s.isHistory) && suggestions.some(s => !s.isHistory) ? "Recent & Database" : suggestions.some(s => s.isHistory) ? "Recently Logged" : "Database"}
+                            </span>
+                            {suggestions.some(s => s.isHistory) && (
+                              <span className="text-[9px] font-black text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded-full flex items-center gap-1">🕐 Your History</span>
+                            )}
                           </div>
                           <div className="max-h-52 overflow-y-auto">
                             {suggestions.map((food, i) => (
@@ -492,7 +520,10 @@ export default function Nutrition() {
                               >
                                 <span className="text-xl shrink-0 w-7 text-center">{food.emoji}</span>
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-bold truncate">{food.name}</p>
+                                  <div className="flex items-center gap-1.5">
+                                    <p className="text-sm font-bold truncate">{food.name}</p>
+                                    {food.isHistory && <span className="text-[9px] font-black text-amber-500 bg-amber-500/10 px-1 py-0.5 rounded shrink-0">Recent</span>}
+                                  </div>
                                   <p className="text-[10px] text-muted-foreground">
                                     {food.calories} kcal · {food.protein}g protein · {food.carbs}g carbs · {food.fat}g fat
                                   </p>

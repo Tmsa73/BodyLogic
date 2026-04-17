@@ -193,3 +193,32 @@ export function searchFoods(query: string, limit = 8): FoodItem[] {
     .slice(0, limit)
     .map(s => s.food);
 }
+
+// ── Personal Food History (localStorage) ──────────────────────────────
+export type FoodHistoryItem = FoodItem & { loggedAt: number };
+
+const FOOD_HISTORY_KEY = "bodylogic:food_history";
+const MAX_FOOD_HISTORY = 30;
+
+export function getFoodHistory(): FoodHistoryItem[] {
+  try {
+    return JSON.parse(localStorage.getItem(FOOD_HISTORY_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+export function saveFoodToHistory(item: FoodItem) {
+  try {
+    const history = getFoodHistory().filter(h => h.name.toLowerCase() !== item.name.toLowerCase());
+    history.unshift({ ...item, loggedAt: Date.now() });
+    localStorage.setItem(FOOD_HISTORY_KEY, JSON.stringify(history.slice(0, MAX_FOOD_HISTORY)));
+  } catch {}
+}
+
+export function searchFoodHistory(query: string, limit = 3): FoodHistoryItem[] {
+  const history = getFoodHistory();
+  if (!query.trim()) return history.slice(0, limit);
+  const q = query.toLowerCase();
+  return history.filter(h => h.name.toLowerCase().includes(q)).slice(0, limit);
+}
