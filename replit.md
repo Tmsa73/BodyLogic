@@ -23,8 +23,8 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **URL**: `/` (root, port 3000)
 - **Type**: react-vite web app (mobile-style layout, max 430px)
 - **Description**: Full-stack AI-powered personal health companion with 6 sections:
-  1. **Home** – Momentum Score + Life Balance side-by-side, 4 stat cards, XP/coins banner, water quick-add, clickable Meal IQ quiz card, AI tip, recent activity, active title display
-  2. **Nutrition** – Meal logger, calorie/macro progress rings, clickable Meal IQ quiz card, streak badge, camera/photo scan buttons, today's meals list, add meal form
+  1. **Home** – Momentum Score + Life Balance side-by-side, 4 stat cards, XP/coins banner, water quick-add, clickable Meal IQ quiz card, AI tip (rotates every 10 min), improved streak calendar, recent activity, active title display
+  2. **Nutrition** – Meal logger, calorie/macro progress rings, clickable Meal IQ quiz card (35 randomized questions), streak badge, add meal button (camera/photo scan consolidated inside dialog), today's meals list; food image AI recognizes global + Arabian cuisines
   3. **Fitness** – Weekly activity chart, workout logger, calories burned, sleep recovery card
   4. **AI Coach** – Conversational AI with personality badge (Motivator/Friendly/Strict/Silent), collapsible habit warning panel, 8 topic chips
   5. **History** – Filterable timeline of all logged events (meals, workouts, sleep)

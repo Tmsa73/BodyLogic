@@ -5,7 +5,7 @@ import {
 } from "@workspace/api-client-react";
 import { useLang } from "@/contexts/language-context";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, Flame, Brain, Trophy, Utensils, Camera, ImagePlus, Sparkles, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Plus, Trash2, Flame, Brain, Trophy, Utensils, Camera, ImagePlus, Sparkles, CheckCircle2, AlertCircle, Loader2, ChevronDown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -363,16 +363,9 @@ export default function Nutrition() {
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold">{t("nutrition_meals")}</h3>
             <div className="flex items-center gap-2">
-              {/* Scan buttons */}
-              <button onClick={() => cameraInputRef.current?.click()} className="flex items-center gap-1.5 h-8 px-3 rounded-xl text-xs font-bold bg-secondary/10 text-secondary border border-secondary/20 hover:bg-secondary/20 transition-colors press-scale">
-                <Camera className="w-3.5 h-3.5" /> Camera
-              </button>
-              <button onClick={() => galleryInputRef.current?.click()} className="flex items-center gap-1.5 h-8 px-3 rounded-xl text-xs font-bold bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors press-scale">
-                <ImagePlus className="w-3.5 h-3.5" /> Photo
-              </button>
               <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setScanPreview(null); setScanResult(null); setForm({ name: "", calories: "", protein: "", carbs: "", fat: "", fiber: "", sugar: "", mealType: "lunch" }); } }}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="h-8 gap-1.5 rounded-xl text-xs font-bold">
+                  <Button size="sm" className="h-9 gap-1.5 rounded-xl text-xs font-bold px-4">
                     <Plus className="w-3.5 h-3.5" /> {t("nutrition_add_meal")}
                   </Button>
                 </DialogTrigger>
@@ -381,6 +374,22 @@ export default function Nutrition() {
                     {scanPreview ? <><Sparkles className="w-4 h-4 text-primary" /> AI Scan Result</> : t("nutrition_log_meal")}
                   </DialogTitle></DialogHeader>
                   <div className="space-y-3 pt-2">
+                    {/* Quick scan options */}
+                    {!scanPreview && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <button onClick={() => cameraInputRef.current?.click()} className="flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold bg-secondary/10 text-secondary border border-secondary/20 hover:bg-secondary/20 transition-colors press-scale">
+                          <Camera className="w-4 h-4" /> Scan with Camera
+                        </button>
+                        <button onClick={() => galleryInputRef.current?.click()} className="flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors press-scale">
+                          <ImagePlus className="w-4 h-4" /> Upload Photo
+                        </button>
+                      </div>
+                    )}
+                    <div className="relative flex items-center gap-2">
+                      <div className="flex-1 h-px bg-border/40" />
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">or enter manually</span>
+                      <div className="flex-1 h-px bg-border/40" />
+                    </div>
                     {/* Image preview + scan status */}
                     {scanPreview && (
                       <div className="relative rounded-xl overflow-hidden">

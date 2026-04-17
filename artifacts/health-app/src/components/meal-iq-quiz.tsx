@@ -27,10 +27,39 @@ const BASE_QUESTIONS: Question[] = [
   { question: "Which snack is the smartest default?", options: ["Greek yogurt with berries", "Candy only", "Soda", "Plain chips"], correct: 0, explanation: "It combines protein, fiber, and micronutrients without a large sugar spike." },
   { question: "If dinner is low in fiber, add:", options: ["Leafy greens or beans", "More butter only", "A second dessert", "Skip water"], correct: 0, explanation: "Greens and beans are efficient ways to boost fiber and fullness." },
   { question: "For hydration, a good first step is:", options: ["Wait until night", "Drink water with meals", "Only drink caffeine", "Avoid fluids"], correct: 1, explanation: "Pairing water with meals makes hydration easier to remember." },
+  { question: "Which cooking method preserves the most nutrients?", options: ["Deep frying", "Boiling for a long time", "Steaming or light sautéing", "Microwaving in oil"], correct: 2, explanation: "Steaming keeps water-soluble vitamins intact and uses minimal added fat." },
+  { question: "What is the primary purpose of dietary fiber?", options: ["Builds muscle", "Supports digestion and gut health", "Provides quick energy", "Replaces protein"], correct: 1, explanation: "Fiber feeds good gut bacteria, slows sugar absorption, and improves digestion." },
+  { question: "Which oil is best for heart health when cooking?", options: ["Coconut oil exclusively", "Lard", "Extra virgin olive oil", "Vegetable shortening"], correct: 2, explanation: "Olive oil is rich in monounsaturated fats linked to lower heart disease risk." },
+  { question: "How many servings of vegetables are recommended daily?", options: ["1 serving", "2–3 servings", "5+ servings", "None if you take supplements"], correct: 2, explanation: "Most guidelines recommend at least 5 portions of fruits and vegetables per day." },
+  { question: "Which food is highest in omega-3 fatty acids?", options: ["White bread", "Salmon", "White rice", "Cheese"], correct: 1, explanation: "Fatty fish like salmon are among the richest sources of anti-inflammatory omega-3s." },
+  { question: "What happens when you eat too fast?", options: ["Better digestion", "You tend to overeat before feeling full", "More nutrients absorbed", "Nothing different"], correct: 1, explanation: "Hunger hormones take ~20 minutes to signal fullness — eating fast bypasses this." },
+  { question: "Which breakfast choice provides the most sustained energy?", options: ["Sugary cereal", "Oats with nuts and fruit", "White toast only", "Energy drink"], correct: 1, explanation: "Oats have complex carbs + fiber; nuts add protein and fat for lasting fuel." },
+  { question: "What does 'empty calories' mean?", options: ["Very low calorie food", "Calories with no nutritional value", "Calories from vegetables", "Negative calorie foods"], correct: 1, explanation: "Foods like soda or candy provide energy without vitamins, minerals, or fiber." },
+  { question: "Which mineral is most important for bone health?", options: ["Iron", "Calcium", "Sodium", "Copper"], correct: 1, explanation: "Calcium is the primary building block of bones and teeth." },
+  { question: "How does a Mediterranean diet reduce disease risk?", options: ["By eliminating all fats", "High sugar intake", "Rich in produce, whole grains, legumes, and olive oil", "Zero carbohydrates"], correct: 2, explanation: "The Med diet is associated with lower rates of heart disease, diabetes, and obesity." },
+  { question: "Which vitamin requires sunlight for synthesis in the body?", options: ["Vitamin C", "Vitamin D", "Vitamin B12", "Vitamin A"], correct: 1, explanation: "Skin exposure to UVB rays triggers Vitamin D production — crucial for bones and immunity." },
+  { question: "What is the role of protein at breakfast?", options: ["Increases sugar cravings", "Reduces hunger and helps muscle maintenance", "Slows metabolism", "No benefit at breakfast"], correct: 1, explanation: "Protein raises satiety hormones and reduces mid-morning energy crashes." },
+  { question: "Which is a complete protein source?", options: ["White rice alone", "Eggs", "White bread", "Lettuce"], correct: 1, explanation: "Eggs contain all 9 essential amino acids your body cannot produce itself." },
+  { question: "What is the glycemic index?", options: ["A measure of calories in food", "How quickly a food raises blood sugar", "Protein content of food", "Fat density ranking"], correct: 1, explanation: "High GI foods spike blood sugar fast; low GI foods cause a slower, steadier rise." },
+  { question: "Which Arabian dish is traditionally high in protein?", options: ["Kunafa", "Kabsa with chicken", "Luqaimat", "Halwa"], correct: 1, explanation: "Kabsa with chicken or lamb provides significant protein alongside rice and spices." },
+  { question: "What makes dates a smart snack?", options: ["Zero calories", "Natural sugars plus fiber, potassium, and magnesium", "No sugar at all", "High in fat"], correct: 1, explanation: "Dates are nutrient-dense with minerals and fiber, making them better than refined sweets." },
+  { question: "Which nutrient is a primary source of energy for the brain?", options: ["Fat", "Protein", "Glucose (from carbs)", "Fiber"], correct: 2, explanation: "The brain runs primarily on glucose; consistent carb intake keeps cognition sharp." },
+  { question: "What is a benefit of eating legumes (lentils, beans, chickpeas)?", options: ["Very low in nutrients", "High fiber and plant protein with low fat", "Cause blood sugar spikes", "Only suitable for weight gain"], correct: 1, explanation: "Legumes are one of the most nutrient-dense, budget-friendly foods you can eat." },
+  { question: "How much water should most adults drink daily?", options: ["500ml total", "About 2–3 liters", "Only when very thirsty", "10+ liters"], correct: 1, explanation: "Around 2–3 liters per day (including food water) supports metabolism and organ function." },
+  { question: "Which is a sign of a nutrient-dense meal?", options: ["Bright neon color from artificial dyes", "Short ingredient list of whole foods", "Many additives and preservatives", "Comes in individual candy wrappers"], correct: 1, explanation: "Whole foods with few ingredients tend to pack more vitamins and minerals per calorie." },
+  { question: "What does 'eating the rainbow' mean?", options: ["Eating candy of every color", "Consuming a variety of colorful whole fruits and vegetables", "Drinking colored beverages", "Mixing food dyes in meals"], correct: 1, explanation: "Different pigments in produce represent different antioxidants and phytonutrients." },
+  { question: "Which spice is known for its anti-inflammatory properties?", options: ["Plain salt", "Turmeric", "Sugar", "Artificial flavor"], correct: 1, explanation: "Curcumin in turmeric has strong anti-inflammatory and antioxidant effects." },
+  { question: "What is the healthiest way to sweeten food?", options: ["White sugar in large amounts", "Fresh fruit or a small amount of raw honey", "Artificial sweeteners in excess", "High-fructose corn syrup"], correct: 1, explanation: "Natural fruit brings sweetness along with fiber and micronutrients — a better trade-off." },
+  { question: "What does intermittent fasting primarily help with?", options: ["Building more fat reserves", "Calorie control and metabolic flexibility", "Eliminating all nutrients", "Only muscle gain"], correct: 1, explanation: "IF helps many people reduce overall calorie intake and improve insulin sensitivity." },
+  { question: "Which macronutrient takes longest to digest?", options: ["Simple sugars", "Fat", "Refined carbs", "Plain water"], correct: 1, explanation: "Fat digestion is slow, which is why fatty meals keep you full longer." },
+  { question: "What is a key benefit of fermented foods like yogurt and kefir?", options: ["Very high in saturated fat", "Support gut microbiome with probiotics", "Contain no calories", "Replace all protein needs"], correct: 1, explanation: "Probiotics in fermented foods promote a healthy gut and stronger immune response." },
+  { question: "Which food group should form the base of a healthy meal?", options: ["Processed meats", "Vegetables and whole grains", "Fried snacks", "Sugary drinks"], correct: 1, explanation: "Non-starchy vegetables and whole grains provide fiber, vitamins, and minerals with fewer calories." },
+  { question: "What is a hidden source of excess sodium in many diets?", options: ["Fresh vegetables", "Packaged and processed foods", "Plain water", "Fresh fruit"], correct: 1, explanation: "Most dietary sodium comes from processed foods, not added table salt." },
+  { question: "Which Arabian food is a great source of complex carbohydrates?", options: ["Ghee only", "Whole wheat khubz (bread)", "Luqaimat fried dough", "Plain sugar tea"], correct: 1, explanation: "Whole wheat khubz provides fiber and complex carbs that release energy gradually." },
 ];
 
 function pickQuestions() {
-  return [...BASE_QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 4);
+  return [...BASE_QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 5);
 }
 
 export function MealIqQuiz({ children, score }: { children: React.ReactNode; score?: number | null }) {
@@ -68,7 +97,7 @@ export function MealIqQuiz({ children, score }: { children: React.ReactNode; sco
     playGamificationSound(answer === current.correct ? "xp" : "toggle");
     const newCorrect = next.reduce((sum, a, i) => sum + (a === questions[i]?.correct ? 1 : 0), 0);
     if (next.length === questions.length && !coinsAwarded) {
-      const earned = newCorrect >= questions.length ? 15 : newCorrect >= questions.length - 1 ? 10 : newCorrect >= 2 ? 5 : 2;
+      const earned = newCorrect >= questions.length ? 15 : newCorrect >= questions.length - 1 ? 10 : newCorrect >= 3 ? 5 : 2;
       addCoins(earned);
       setCoinsEarned(earned);
       setCoinsAwarded(true);
@@ -159,7 +188,7 @@ export function MealIqQuiz({ children, score }: { children: React.ReactNode; sco
               )}>
                 {correctCount === questions.length ? "Perfect score! You're a nutrition pro." :
                  correctCount >= questions.length - 1 ? "Great job! One step from perfect." :
-                 correctCount >= 2 ? "Good effort! Keep building your nutrition knowledge." :
+                 correctCount >= 3 ? "Good effort! Keep building your nutrition knowledge." :
                  "Keep practicing — every quiz makes you smarter!"}
               </div>
               <div className="grid grid-cols-2 gap-2">

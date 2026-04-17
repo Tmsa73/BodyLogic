@@ -170,9 +170,11 @@ router.post("/nutrition/analyze-food-image", async (req, res): Promise<void> => 
             },
             {
               type: "text",
-              text: `Analyze this food image and return ONLY a JSON object (no markdown, no explanation) with these fields:
+              text: `You are an expert nutritionist and food recognition AI with comprehensive knowledge of global cuisines including Middle Eastern, Arabian, Gulf, Levantine, North African, South Asian, East Asian, Mediterranean, Western, and all other world cuisines.
+
+Analyze this food image and return ONLY a JSON object (no markdown, no explanation) with these fields:
 {
-  "name": "dish name",
+  "name": "dish name in English",
   "calories": number,
   "protein": number (grams),
   "carbs": number (grams),
@@ -183,7 +185,10 @@ router.post("/nutrition/analyze-food-image", async (req, res): Promise<void> => 
   "confidence": "high" | "medium" | "low",
   "description": "brief 1-sentence description of what you see"
 }
-Use realistic nutritional values for a typical serving. If you cannot identify food, set name to "Unknown food" and use 0 for all numbers.`,
+
+You recognize all foods including but not limited to: Kabsa, Mandi, Machboos, Biryani, Shawarma, Falafel, Hummus, Fattoush, Tabbouleh, Mansaf, Maqluba, Kibbeh, Warak Dawali, Harees, Margoog, Saleeg, Mufattah, Jareesh, Mutabbaq, Samboosa, Luqaimat, Dates, Knafeh, Baklava, Umm Ali, Muhallabia, Arabic bread (khubz), Ful medames, Fatteh, Shakshuka, Baba ganoush, Labneh, Za'atar dishes, Halloumi, Dolma, Molokhia, Koshari, Ful, Mahyawa, Saloona, Pasta, Pizza, Burger, Salad, Rice dishes, Grilled meats, Soups, Sandwiches, Smoothies, Eggs, Oats, Fruits, Vegetables, and any other food visible in the image.
+
+Use realistic nutritional values for a standard serving size. Make your best identification attempt even if the image is not perfect — set confidence to "low" if uncertain but still provide your best estimate. Only use "Unknown food" if the image contains absolutely no food.`,
             },
           ],
         },

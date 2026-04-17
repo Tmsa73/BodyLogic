@@ -291,22 +291,7 @@ function MeTab({ profile, stats, progress, missions, balance, user, activeTitle,
 
   return (
     <div className="space-y-4 pb-24">
-      {/* Profile Banner */}
-      <div className={cn("relative h-28 w-full bg-gradient-to-r overflow-hidden", activeBanner.gradient)}>
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px)" }} />
-        <div className="absolute bottom-3 left-4 flex items-center gap-2">
-          <span className="text-2xl">{activeBanner.emoji}</span>
-          <div>
-            <p className="text-white font-black text-sm drop-shadow-sm">{activeBanner.name}</p>
-            {nextBanner && (
-              <p className="text-white/60 text-[10px] font-semibold">{nextBanner.unlocksAt - unlockedTitlesCount} more titles for "{nextBanner.name}"</p>
-            )}
-          </div>
-        </div>
-        <div className="absolute bottom-3 right-4 text-[10px] text-white/50 font-bold">{unlockedTitlesCount} titles unlocked</div>
-      </div>
-
-      <div className="px-4 space-y-4">
+      <div className="px-4 pt-4 space-y-4">
       {/* Health Identity Card */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/25 via-secondary/10 to-primary/5 border border-primary/30 p-5">
         <div className="absolute top-0 right-0 w-40 h-40 bg-primary/10 rounded-full -translate-y-10 translate-x-10 blur-3xl" />
@@ -397,7 +382,10 @@ function MeTab({ profile, stats, progress, missions, balance, user, activeTitle,
           </div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/10 backdrop-blur-sm">
             <Calendar className="w-3 h-3 text-white/70" />
-            <span className="text-[10px] font-bold text-white/80">{profile.age}y • {profile.gender}</span>
+            <span className="text-[10px] font-bold text-white/80">
+              {profile.age > 0 ? `${profile.age}y` : "Age N/A"}
+              {profile.gender && profile.gender !== "unspecified" && profile.gender !== "" ? ` • ${profile.gender}` : ""}
+            </span>
           </div>
         </div>
       </div>

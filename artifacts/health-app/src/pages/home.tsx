@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useGetDashboard, useGetAiInsights, useGetWaterIntake, useGetSteps, useGetProgress, useGetLifeBalance, useGetNotifications, useMarkNotificationRead, useLogWater, getGetWaterIntakeQueryKey, getGetDashboardQueryKey, getGetNotificationsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Bell, Droplets, Footprints, Moon, Flame, Zap, Dumbbell, Utensils, Sparkles, Brain, X, Trophy, Crown, ChevronRight, Coins, Sword, CheckCheck, Star, BedDouble, Activity } from "lucide-react";
@@ -13,6 +13,7 @@ import { playGamificationSound } from "@/lib/sounds";
 
 export default function Home() {
   const [notifOpen, setNotifOpen] = useState(false);
+  const [tipIndex, setTipIndex] = useState(0);
   const { data: dashboard, isLoading } = useGetDashboard();
   const { data: insights } = useGetAiInsights();
   const { data: water } = useGetWaterIntake();
@@ -45,6 +46,13 @@ export default function Home() {
       }
     });
   };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTipIndex(i => i + 1);
+    }, 10 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   if (isLoading || !dashboard) return <HomeSkeleton />;
 
@@ -86,7 +94,8 @@ export default function Home() {
     return "C";
   };
 
-  const tip = insights?.tips?.[0];
+  const tips = insights?.tips ?? [];
+  const tip = tips.length > 0 ? tips[tipIndex % tips.length] : null;
   const tipColors: Record<string, string> = {
     nutrition: "from-primary/20 to-primary/5 border-primary/30",
     fitness: "from-secondary/20 to-secondary/5 border-secondary/30",
@@ -557,14 +566,26 @@ export default function Home() {
         {/* 30-Day Streak Calendar */}
         {progress && (
           <div className="bg-card rounded-2xl p-4 border border-border/50">
-            <div className="flex items-center justify-between mb-3">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Flame className="w-4 h-4 text-orange-400" />
-                <span className="text-sm font-bold">Activity Streak</span>
+                <div className="w-8 h-8 rounded-xl bg-orange-400/15 flex items-center justify-center">
+                  <Flame className="w-4 h-4 text-orange-400" />
+                </div>
+                <div>
+                  <span className="text-sm font-black">Activity Streak</span>
+                  <p className="text-[10px] text-muted-foreground">Last 30 days</p>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5 bg-orange-400/10 border border-orange-400/20 px-2.5 py-1 rounded-full">
-                <Flame className="w-3 h-3 text-orange-400" />
-                <span className="text-xs font-black text-orange-400">{progress.stats?.currentStreak ?? 0} day{(progress.stats?.currentStreak ?? 0) !== 1 ? "s" : ""}</span>
+              <div className="flex flex-col items-end gap-1">
+                <div className="flex items-center gap-1.5 bg-orange-400/10 border border-orange-400/25 px-3 py-1.5 rounded-full">
+                  <Flame className="w-3.5 h-3.5 text-orange-400" />
+                  <span className="text-sm font-black text-orange-400">{progress.stats?.currentStreak ?? 0}</span>
+                  <span className="text-xs text-orange-400/70 font-semibold">day{(progress.stats?.currentStreak ?? 0) !== 1 ? "s" : ""}</span>
+                </div>
+                {(progress.stats?.longestStreak ?? 0) > 0 && (
+                  <span className="text-[9px] text-muted-foreground font-semibold">Best: {progress.stats?.longestStreak ?? 0}d</span>
+                )}
               </div>
             </div>
             {(() => {
@@ -578,56 +599,70 @@ export default function Home() {
                 })
               );
               const streak = progress.stats?.currentStreak ?? 0;
-              const days = Array.from({ length: 30 }, (_, i) => {
+              const days = Array.from({ length: 35 }, (_, i) => {
                 const d = new Date(today);
-                d.setDate(today.getDate() - (29 - i));
-                const daysAgo = 29 - i;
+                d.setDate(today.getDate() - (34 - i));
+                const daysAgo = 34 - i;
                 const inStreak = daysAgo < streak;
                 const hasActivity = activityDates.has(d.getTime()) || inStreak;
                 const isToday = daysAgo === 0;
-                return { date: d, hasActivity, inStreak, isToday };
+                const isFuture = daysAgo < 0;
+                return { date: d, hasActivity, inStreak, isToday, isFuture };
               });
               const weeks: typeof days[] = [];
               for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
-              const dayLabels = ["S", "M", "T", "W", "T", "F", "S"];
+              const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+              const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
               return (
                 <div>
-                  <div className="grid grid-cols-7 gap-1 mb-1">
+                  <div className="grid grid-cols-7 gap-1.5 mb-2">
                     {dayLabels.map((d, i) => (
-                      <div key={i} className="text-center text-[9px] font-bold text-muted-foreground/50">{d}</div>
+                      <div key={i} className="text-center text-[9px] font-bold text-muted-foreground/60 uppercase tracking-wide">{d[0]}</div>
                     ))}
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     {weeks.map((week, wi) => (
-                      <div key={wi} className="grid grid-cols-7 gap-1">
+                      <div key={wi} className="grid grid-cols-7 gap-1.5">
                         {week.map((day, di) => (
                           <div
                             key={di}
                             className={cn(
-                              "aspect-square rounded-lg flex flex-col items-center justify-center gap-0.5 text-[8px] font-black",
-                              day.isToday
-                                ? "ring-2 ring-primary ring-offset-1 ring-offset-card"
-                                : "",
-                              day.hasActivity
-                                ? "bg-gradient-to-br from-primary to-secondary"
-                                : "bg-muted/40 border border-border/30"
+                              "relative flex flex-col items-center justify-center rounded-xl transition-all",
+                              "h-9",
+                              day.isToday && "ring-2 ring-orange-400 ring-offset-1 ring-offset-card",
+                              day.hasActivity && !day.isFuture
+                                ? "bg-gradient-to-br from-orange-400 to-primary shadow-sm"
+                                : "bg-muted/30 border border-border/20"
                             )}
                           >
-                            <span className={cn(day.hasActivity ? "text-white" : "text-muted-foreground")}>{day.date.getMonth() + 1}/{day.date.getDate()}</span>
-                            {day.isToday && <div className={cn("w-1.5 h-1.5 rounded-full", day.hasActivity ? "bg-white/80" : "bg-primary")} />}
+                            <span className={cn(
+                              "text-[9px] font-black leading-none",
+                              day.hasActivity && !day.isFuture ? "text-white" : "text-muted-foreground/60"
+                            )}>
+                              {day.date.getDate()}
+                            </span>
+                            {day.isToday && (
+                              <div className={cn("w-1 h-1 rounded-full mt-0.5", day.hasActivity ? "bg-white/80" : "bg-orange-400")} />
+                            )}
                           </div>
                         ))}
                       </div>
                     ))}
                   </div>
-                  <div className="flex items-center gap-3 mt-2.5 justify-end">
-                    <div className="flex items-center gap-1">
-                      <div className="w-2.5 h-2.5 rounded-sm bg-gradient-to-br from-primary to-secondary" />
-                      <span className="text-[9px] text-muted-foreground">Active</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="w-2.5 h-2.5 rounded-sm bg-muted/40 border border-border/30" />
-                      <span className="text-[9px] text-muted-foreground">Rest</span>
+                  {/* Month label */}
+                  <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border/30">
+                    <span className="text-[10px] text-muted-foreground font-semibold">
+                      {monthNames[new Date(today.getFullYear(), today.getMonth() - 1).getMonth()]} — {monthNames[today.getMonth()]}
+                    </span>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-3 h-3 rounded-md bg-gradient-to-br from-orange-400 to-primary shadow-sm" />
+                        <span className="text-[9px] text-muted-foreground font-semibold">Active</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-3 h-3 rounded-md bg-muted/30 border border-border/20" />
+                        <span className="text-[9px] text-muted-foreground font-semibold">Rest</span>
+                      </div>
                     </div>
                   </div>
                 </div>
