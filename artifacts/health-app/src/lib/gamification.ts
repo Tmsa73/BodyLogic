@@ -5,7 +5,9 @@ export type MissionType = "daily" | "weekly" | "smart" | "boss";
 export interface Achievement {
   id: string;
   name: string;
+  nameAr?: string;
   description: string;
+  descAr?: string;
   icon: string;
   category: AchievementCategory;
   xpReward: number;
@@ -17,7 +19,9 @@ export interface Achievement {
 export interface Title {
   id: string;
   name: string;
+  nameAr?: string;
   description: string;
+  descAr?: string;
   category: AchievementCategory;
   minLevel: number;
   color: string;
@@ -36,7 +40,9 @@ export interface Badge {
 export interface Mission {
   id: string;
   title: string;
+  titleAr?: string;
   description: string;
+  descAr?: string;
   icon: string;
   xp: number;
   coins: number;
@@ -62,111 +68,111 @@ export interface GamificationStats {
 }
 
 export const ALL_ACHIEVEMENTS: Achievement[] = [
-  // ─── NUTRITION (30) ───────────────────────────────────────────────
-  { id: "first_meal", name: "First Bite", description: "Log your very first meal", icon: "🍽️", category: "nutrition", xpReward: 50, tier: "bronze", condition: s => s.totalMeals >= 1 },
-  { id: "meals_5", name: "Getting Started", description: "Log 5 meals", icon: "🥗", category: "nutrition", xpReward: 75, tier: "bronze", condition: s => s.totalMeals >= 5 },
-  { id: "meals_10", name: "Regular Eater", description: "Log 10 meals", icon: "🍱", category: "nutrition", xpReward: 100, tier: "bronze", condition: s => s.totalMeals >= 10 },
-  { id: "meals_30", name: "Meal Logger", description: "Log 30 meals total", icon: "📋", category: "nutrition", xpReward: 200, tier: "silver", condition: s => s.totalMeals >= 30 },
-  { id: "meals_50", name: "Food Tracker", description: "Log 50 meals total", icon: "🥘", category: "nutrition", xpReward: 300, tier: "silver", condition: s => s.totalMeals >= 50 },
-  { id: "meals_100", name: "Centurion Chef", description: "Log 100 meals", icon: "👨‍🍳", category: "nutrition", xpReward: 500, tier: "gold", condition: s => s.totalMeals >= 100 },
-  { id: "meals_200", name: "Nutrition Master", description: "Log 200 meals", icon: "🏆", category: "nutrition", xpReward: 800, tier: "platinum", condition: s => s.totalMeals >= 200 },
-  { id: "high_meal_iq", name: "Smart Eater", description: "Average Meal IQ above 16", icon: "🧠", category: "nutrition", xpReward: 150, tier: "silver", condition: s => s.avgMealIQ >= 16 },
-  { id: "excellent_meal_iq", name: "Nutrition Expert", description: "Average Meal IQ above 22", icon: "⭐", category: "nutrition", xpReward: 400, tier: "gold", condition: s => s.avgMealIQ >= 22 },
-  { id: "perfect_meal_iq", name: "Perfect Nutrition", description: "Achieve 28/28 Meal IQ", icon: "🌟", category: "nutrition", xpReward: 1000, tier: "legendary", condition: s => s.avgMealIQ >= 28 },
-  { id: "water_hero", name: "Hydration Hero", description: "Log water for 3 days", icon: "💧", category: "nutrition", xpReward: 100, tier: "bronze", condition: s => s.totalWaterDays >= 3 },
-  { id: "water_week", name: "H2O Warrior", description: "Stay hydrated 7 days", icon: "🌊", category: "nutrition", xpReward: 200, tier: "silver", condition: s => s.totalWaterDays >= 7 },
-  { id: "water_month", name: "Ocean Mind", description: "Log water for 30 days", icon: "🏄", category: "nutrition", xpReward: 500, tier: "gold", condition: s => s.totalWaterDays >= 30 },
-  { id: "protein_master", name: "Protein Power", description: "High protein meals consistently", icon: "💪", category: "nutrition", xpReward: 250, tier: "silver", condition: s => s.avgMealIQ >= 18 && s.totalMeals >= 10 },
-  { id: "clean_eater_7", name: "Clean Week", description: "7 days of healthy eating", icon: "🥦", category: "nutrition", xpReward: 300, tier: "silver", condition: s => s.currentStreak >= 7 },
-  { id: "clean_eater_30", name: "Clean Month", description: "30 days of clean eating", icon: "🌿", category: "nutrition", xpReward: 1000, tier: "platinum", condition: s => s.longestStreak >= 30 },
-  { id: "balanced_diet", name: "Macro Balance", description: "Track macros for 5 meals", icon: "⚖️", category: "nutrition", xpReward: 150, tier: "bronze", condition: s => s.totalMeals >= 5 },
-  { id: "veggie_lover", name: "Veggie Lover", description: "Log 20 healthy meals", icon: "🥬", category: "nutrition", xpReward: 200, tier: "silver", condition: s => s.totalMeals >= 20 && s.avgMealIQ >= 15 },
-  { id: "sugar_control", name: "Sugar Controller", description: "Maintain low sugar diet (Meal IQ 18+)", icon: "🚫", category: "nutrition", xpReward: 300, tier: "silver", condition: s => s.avgMealIQ >= 18 },
-  { id: "calorie_tracker", name: "Calorie Counter", description: "Track calories for 14 days", icon: "📊", category: "nutrition", xpReward: 250, tier: "silver", condition: s => s.totalMeals >= 14 },
-  { id: "healthy_3day", name: "3-Day Clean Streak", description: "Eat healthy 3 days in a row", icon: "🌱", category: "nutrition", xpReward: 120, tier: "bronze", condition: s => s.currentStreak >= 3 && s.avgMealIQ >= 14 },
-  { id: "no_junk_week", name: "No Junk Week", description: "7 days without junk food", icon: "🚫🍔", category: "nutrition", xpReward: 600, tier: "gold", condition: s => s.longestStreak >= 7 && s.avgMealIQ >= 16 },
-  { id: "fiber_hero", name: "Fiber Hero", description: "Consistently high-fiber meals", icon: "🌾", category: "nutrition", xpReward: 180, tier: "silver", condition: s => s.totalMeals >= 15 && s.avgMealIQ >= 17 },
-  { id: "meal_strategist_badge", name: "Meal Strategist", description: "Plan & log meals for 30 days", icon: "📅", category: "nutrition", xpReward: 700, tier: "platinum", condition: s => s.totalMeals >= 90 },
-  { id: "macro_pro", name: "Macro Pro", description: "Track all macros for 25 meals", icon: "🔬", category: "nutrition", xpReward: 350, tier: "gold", condition: s => s.totalMeals >= 25 && s.avgMealIQ >= 18 },
-  { id: "hydration_30", name: "Hydration Legend", description: "Stay hydrated 30 days straight", icon: "💎", category: "nutrition", xpReward: 500, tier: "platinum", condition: s => s.totalWaterDays >= 30 },
-  { id: "breakfast_club", name: "Breakfast Club", description: "Log breakfast 10 times", icon: "🍳", category: "nutrition", xpReward: 150, tier: "bronze", condition: s => s.totalMeals >= 10 },
-  { id: "nutrition_nerd", name: "Nutrition Nerd", description: "Achieve 150 total meals", icon: "🤓", category: "nutrition", xpReward: 600, tier: "gold", condition: s => s.totalMeals >= 150 },
+  // ─── NUTRITION ────────────────────────────────────────────────────
+  { id: "first_meal", name: "First Bite", nameAr: "أولى لقمة", description: "Log your very first meal", descAr: "سجّل أول وجبة لك", icon: "🍽️", category: "nutrition", xpReward: 50, tier: "bronze", condition: s => s.totalMeals >= 1 },
+  { id: "meals_5", name: "Getting Started", nameAr: "البداية", description: "Log 5 meals", descAr: "سجّل ٥ وجبات", icon: "🥗", category: "nutrition", xpReward: 75, tier: "bronze", condition: s => s.totalMeals >= 5 },
+  { id: "meals_10", name: "Regular Eater", nameAr: "آكل منتظم", description: "Log 10 meals", descAr: "سجّل ١٠ وجبات", icon: "🍱", category: "nutrition", xpReward: 100, tier: "bronze", condition: s => s.totalMeals >= 10 },
+  { id: "meals_30", name: "Meal Logger", nameAr: "مسجّل الوجبات", description: "Log 30 meals total", descAr: "سجّل ٣٠ وجبة", icon: "📋", category: "nutrition", xpReward: 200, tier: "silver", condition: s => s.totalMeals >= 30 },
+  { id: "meals_50", name: "Food Tracker", nameAr: "متتبع الطعام", description: "Log 50 meals total", descAr: "سجّل ٥٠ وجبة", icon: "🥘", category: "nutrition", xpReward: 300, tier: "silver", condition: s => s.totalMeals >= 50 },
+  { id: "meals_100", name: "Centurion Chef", nameAr: "الطاهي المئوي", description: "Log 100 meals", descAr: "سجّل ١٠٠ وجبة", icon: "👨‍🍳", category: "nutrition", xpReward: 500, tier: "gold", condition: s => s.totalMeals >= 100 },
+  { id: "meals_200", name: "Nutrition Master", nameAr: "سيد التغذية", description: "Log 200 meals", descAr: "سجّل ٢٠٠ وجبة", icon: "🏆", category: "nutrition", xpReward: 800, tier: "platinum", condition: s => s.totalMeals >= 200 },
+  { id: "high_meal_iq", name: "Smart Eater", nameAr: "آكل ذكي", description: "Average Meal IQ above 16", descAr: "متوسط ذكاء الوجبة فوق ١٦", icon: "🧠", category: "nutrition", xpReward: 150, tier: "silver", condition: s => s.avgMealIQ >= 16 },
+  { id: "excellent_meal_iq", name: "Nutrition Expert", nameAr: "خبير التغذية", description: "Average Meal IQ above 22", descAr: "متوسط ذكاء الوجبة فوق ٢٢", icon: "⭐", category: "nutrition", xpReward: 400, tier: "gold", condition: s => s.avgMealIQ >= 22 },
+  { id: "perfect_meal_iq", name: "Perfect Nutrition", nameAr: "تغذية مثالية", description: "Achieve 28/28 Meal IQ", descAr: "تحقيق ذكاء وجبة ٢٨/٢٨", icon: "🌟", category: "nutrition", xpReward: 1000, tier: "legendary", condition: s => s.avgMealIQ >= 28 },
+  { id: "water_hero", name: "Hydration Hero", nameAr: "بطل الترطيب", description: "Log water for 3 days", descAr: "سجّل الماء ٣ أيام", icon: "💧", category: "nutrition", xpReward: 100, tier: "bronze", condition: s => s.totalWaterDays >= 3 },
+  { id: "water_week", name: "H2O Warrior", nameAr: "محارب الماء", description: "Stay hydrated 7 days", descAr: "ابقَ مرطّبًا ٧ أيام", icon: "🌊", category: "nutrition", xpReward: 200, tier: "silver", condition: s => s.totalWaterDays >= 7 },
+  { id: "water_month", name: "Ocean Mind", nameAr: "عقل المحيط", description: "Log water for 30 days", descAr: "سجّل الماء ٣٠ يومًا", icon: "🏄", category: "nutrition", xpReward: 500, tier: "gold", condition: s => s.totalWaterDays >= 30 },
+  { id: "protein_master", name: "Protein Power", nameAr: "قوة البروتين", description: "High protein meals consistently", descAr: "وجبات عالية البروتين باستمرار", icon: "💪", category: "nutrition", xpReward: 250, tier: "silver", condition: s => s.avgMealIQ >= 18 && s.totalMeals >= 10 },
+  { id: "clean_eater_7", name: "Clean Week", nameAr: "أسبوع نظيف", description: "7 days of healthy eating", descAr: "٧ أيام من الأكل الصحي", icon: "🥦", category: "nutrition", xpReward: 300, tier: "silver", condition: s => s.currentStreak >= 7 },
+  { id: "clean_eater_30", name: "Clean Month", nameAr: "شهر نظيف", description: "30 days of clean eating", descAr: "٣٠ يومًا من الأكل النظيف", icon: "🌿", category: "nutrition", xpReward: 1000, tier: "platinum", condition: s => s.longestStreak >= 30 },
+  { id: "balanced_diet", name: "Macro Balance", nameAr: "توازن المغذيات", description: "Track macros for 5 meals", descAr: "تتبع المغذيات لـ٥ وجبات", icon: "⚖️", category: "nutrition", xpReward: 150, tier: "bronze", condition: s => s.totalMeals >= 5 },
+  { id: "veggie_lover", name: "Veggie Lover", nameAr: "محب الخضار", description: "Log 20 healthy meals", descAr: "سجّل ٢٠ وجبة صحية", icon: "🥬", category: "nutrition", xpReward: 200, tier: "silver", condition: s => s.totalMeals >= 20 && s.avgMealIQ >= 15 },
+  { id: "sugar_control", name: "Sugar Controller", nameAr: "متحكم في السكر", description: "Maintain low sugar diet (Meal IQ 18+)", descAr: "حافظ على نظام غذائي منخفض السكر", icon: "🚫", category: "nutrition", xpReward: 300, tier: "silver", condition: s => s.avgMealIQ >= 18 },
+  { id: "calorie_tracker", name: "Calorie Counter", nameAr: "عدّاد السعرات", description: "Track calories for 14 days", descAr: "تتبع السعرات ١٤ يومًا", icon: "📊", category: "nutrition", xpReward: 250, tier: "silver", condition: s => s.totalMeals >= 14 },
+  { id: "healthy_3day", name: "3-Day Clean Streak", nameAr: "شريط ٣ أيام نظيفة", description: "Eat healthy 3 days in a row", descAr: "تناول طعامًا صحيًا ٣ أيام متتالية", icon: "🌱", category: "nutrition", xpReward: 120, tier: "bronze", condition: s => s.currentStreak >= 3 && s.avgMealIQ >= 14 },
+  { id: "no_junk_week", name: "No Junk Week", nameAr: "أسبوع بلا تجاوزات", description: "7 days without junk food", descAr: "٧ أيام بلا طعام غير صحي", icon: "🚫🍔", category: "nutrition", xpReward: 600, tier: "gold", condition: s => s.longestStreak >= 7 && s.avgMealIQ >= 16 },
+  { id: "fiber_hero", name: "Fiber Hero", nameAr: "بطل الألياف", description: "Consistently high-fiber meals", descAr: "وجبات عالية الألياف باستمرار", icon: "🌾", category: "nutrition", xpReward: 180, tier: "silver", condition: s => s.totalMeals >= 15 && s.avgMealIQ >= 17 },
+  { id: "meal_strategist_badge", name: "Meal Strategist", nameAr: "استراتيجي الوجبات", description: "Plan & log meals for 30 days", descAr: "تخطيط وتسجيل الوجبات ٣٠ يومًا", icon: "📅", category: "nutrition", xpReward: 700, tier: "platinum", condition: s => s.totalMeals >= 90 },
+  { id: "macro_pro", name: "Macro Pro", nameAr: "محترف المغذيات", description: "Track all macros for 25 meals", descAr: "تتبع كل المغذيات لـ٢٥ وجبة", icon: "🔬", category: "nutrition", xpReward: 350, tier: "gold", condition: s => s.totalMeals >= 25 && s.avgMealIQ >= 18 },
+  { id: "hydration_30", name: "Hydration Legend", nameAr: "أسطورة الترطيب", description: "Stay hydrated 30 days straight", descAr: "ابقَ مرطّبًا ٣٠ يومًا", icon: "💎", category: "nutrition", xpReward: 500, tier: "platinum", condition: s => s.totalWaterDays >= 30 },
+  { id: "breakfast_club", name: "Breakfast Club", nameAr: "نادي الإفطار", description: "Log breakfast 10 times", descAr: "سجّل الإفطار ١٠ مرات", icon: "🍳", category: "nutrition", xpReward: 150, tier: "bronze", condition: s => s.totalMeals >= 10 },
+  { id: "nutrition_nerd", name: "Nutrition Nerd", nameAr: "نرد التغذية", description: "Achieve 150 total meals", descAr: "حقق ١٥٠ وجبة مسجّلة", icon: "🤓", category: "nutrition", xpReward: 600, tier: "gold", condition: s => s.totalMeals >= 150 },
 
-  // ─── FITNESS (30) ─────────────────────────────────────────────────
-  { id: "first_workout", name: "Iron Start", description: "Log your first workout", icon: "🏋️", category: "fitness", xpReward: 50, tier: "bronze", condition: s => s.totalWorkouts >= 1 },
-  { id: "workouts_5", name: "Warming Up", description: "Complete 5 workouts", icon: "🔥", category: "fitness", xpReward: 100, tier: "bronze", condition: s => s.totalWorkouts >= 5 },
-  { id: "workouts_10", name: "Dedicated Athlete", description: "Complete 10 workouts", icon: "💪", category: "fitness", xpReward: 200, tier: "silver", condition: s => s.totalWorkouts >= 10 },
-  { id: "workouts_25", name: "Quarter Century", description: "Complete 25 workouts", icon: "🏅", category: "fitness", xpReward: 400, tier: "silver", condition: s => s.totalWorkouts >= 25 },
-  { id: "workouts_50", name: "Fitness Freak", description: "Complete 50 workouts", icon: "⚡", category: "fitness", xpReward: 600, tier: "gold", condition: s => s.totalWorkouts >= 50 },
-  { id: "workouts_100", name: "Iron Century", description: "Complete 100 workouts", icon: "🏆", category: "fitness", xpReward: 1000, tier: "platinum", condition: s => s.totalWorkouts >= 100 },
-  { id: "workouts_200", name: "Fitness God", description: "Complete 200 workouts", icon: "⚜️", category: "fitness", xpReward: 2000, tier: "legendary", condition: s => s.totalWorkouts >= 200 },
-  { id: "streak_3", name: "Habit Forming", description: "3-day activity streak", icon: "🔥", category: "fitness", xpReward: 75, tier: "bronze", condition: s => s.currentStreak >= 3 },
-  { id: "streak_7", name: "Week Warrior", description: "7-day workout streak", icon: "⚡", category: "fitness", xpReward: 200, tier: "silver", condition: s => s.longestStreak >= 7 },
-  { id: "streak_14", name: "Consistency King", description: "14-day streak", icon: "👑", category: "fitness", xpReward: 400, tier: "gold", condition: s => s.longestStreak >= 14 },
-  { id: "streak_30", name: "Iron Will", description: "30-day consistency streak", icon: "🦁", category: "fitness", xpReward: 800, tier: "platinum", condition: s => s.longestStreak >= 30 },
-  { id: "sleep_tracker", name: "Sleep Logger", description: "Track your sleep once", icon: "😴", category: "fitness", xpReward: 50, tier: "bronze", condition: s => s.totalSleepLogs >= 1 },
-  { id: "sleep_week", name: "Rest Master", description: "Track sleep 7 nights", icon: "🌙", category: "fitness", xpReward: 150, tier: "silver", condition: s => s.totalSleepLogs >= 7 },
-  { id: "sleep_month", name: "Sleep Guardian", description: "Track sleep 30 nights", icon: "⭐", category: "fitness", xpReward: 400, tier: "gold", condition: s => s.totalSleepLogs >= 30 },
-  { id: "steps_10k", name: "10K Day", description: "Walk 10,000+ steps in a day", icon: "👟", category: "fitness", xpReward: 200, tier: "silver", condition: s => s.dailyMaxSteps >= 10000 },
-  { id: "steps_weekly_50k", name: "Active Week", description: "Walk 50K steps in a week", icon: "🚶", category: "fitness", xpReward: 300, tier: "silver", condition: s => s.weeklySteps >= 50000 },
-  { id: "steps_weekly_100k", name: "Step Legend", description: "Walk 100K steps in a week", icon: "🏃", category: "fitness", xpReward: 600, tier: "gold", condition: s => s.weeklySteps >= 100000 },
-  { id: "cardio_beginner", name: "Cardio Starter", description: "5 cardio workouts", icon: "❤️", category: "fitness", xpReward: 150, tier: "bronze", condition: s => s.totalWorkouts >= 5 },
-  { id: "strength_beast", name: "Strength Beast", description: "50 total workouts", icon: "🦍", category: "fitness", xpReward: 500, tier: "gold", condition: s => s.totalWorkouts >= 50 },
-  { id: "active_lifestyle", name: "Active Lifestyle", description: "30 days of tracked activity", icon: "🌟", category: "fitness", xpReward: 400, tier: "gold", condition: s => s.daysActive >= 30 },
-  { id: "legendary_consistency", name: "Legendary Consistency", description: "60-day streak", icon: "🔱", category: "fitness", xpReward: 2000, tier: "legendary", condition: s => s.longestStreak >= 60 },
-  { id: "burn_500", name: "Calorie Furnace", description: "Burn 500+ calories in a single workout", icon: "🌡️", category: "fitness", xpReward: 250, tier: "silver", condition: s => s.totalWorkouts >= 10 },
-  { id: "early_bird_workout", name: "Morning Warrior", description: "Log 5 morning workouts", icon: "🌄", category: "fitness", xpReward: 200, tier: "silver", condition: s => s.totalWorkouts >= 5 && s.daysActive >= 5 },
-  { id: "strength_master", name: "Strength Master", description: "100 total workouts completed", icon: "🥇", category: "fitness", xpReward: 1000, tier: "platinum", condition: s => s.totalWorkouts >= 100 },
-  { id: "cardio_master", name: "Cardio Master", description: "Excellent cardio consistency", icon: "💨", category: "fitness", xpReward: 700, tier: "gold", condition: s => s.totalWorkouts >= 30 && s.weeklySteps >= 70000 },
-  { id: "sleep_optimizer", name: "Sleep Optimizer", description: "Track 60 nights of sleep", icon: "🌜", category: "fitness", xpReward: 800, tier: "platinum", condition: s => s.totalSleepLogs >= 60 },
-  { id: "weekly_champion", name: "Weekly Champion", description: "5+ workouts in a week", icon: "🏆", category: "fitness", xpReward: 350, tier: "gold", condition: s => s.totalWorkouts >= 5 && s.longestStreak >= 7 },
+  // ─── FITNESS ──────────────────────────────────────────────────────
+  { id: "first_workout", name: "Iron Start", nameAr: "البداية الحديدية", description: "Log your first workout", descAr: "سجّل أول تمرين", icon: "🏋️", category: "fitness", xpReward: 50, tier: "bronze", condition: s => s.totalWorkouts >= 1 },
+  { id: "workouts_5", name: "Warming Up", nameAr: "التحمية", description: "Complete 5 workouts", descAr: "أكمل ٥ تمارين", icon: "🔥", category: "fitness", xpReward: 100, tier: "bronze", condition: s => s.totalWorkouts >= 5 },
+  { id: "workouts_10", name: "Dedicated Athlete", nameAr: "رياضي متفانٍ", description: "Complete 10 workouts", descAr: "أكمل ١٠ تمارين", icon: "💪", category: "fitness", xpReward: 200, tier: "silver", condition: s => s.totalWorkouts >= 10 },
+  { id: "workouts_25", name: "Quarter Century", nameAr: "ربع القرن", description: "Complete 25 workouts", descAr: "أكمل ٢٥ تمرينًا", icon: "🏅", category: "fitness", xpReward: 400, tier: "silver", condition: s => s.totalWorkouts >= 25 },
+  { id: "workouts_50", name: "Fitness Freak", nameAr: "مجنون اللياقة", description: "Complete 50 workouts", descAr: "أكمل ٥٠ تمرينًا", icon: "⚡", category: "fitness", xpReward: 600, tier: "gold", condition: s => s.totalWorkouts >= 50 },
+  { id: "workouts_100", name: "Iron Century", nameAr: "المئة الحديدية", description: "Complete 100 workouts", descAr: "أكمل ١٠٠ تمرين", icon: "🏆", category: "fitness", xpReward: 1000, tier: "platinum", condition: s => s.totalWorkouts >= 100 },
+  { id: "workouts_200", name: "Fitness God", nameAr: "إله اللياقة", description: "Complete 200 workouts", descAr: "أكمل ٢٠٠ تمرين", icon: "⚜️", category: "fitness", xpReward: 2000, tier: "legendary", condition: s => s.totalWorkouts >= 200 },
+  { id: "streak_3", name: "Habit Forming", nameAr: "تشكيل العادة", description: "3-day activity streak", descAr: "سلسلة نشاط ٣ أيام", icon: "🔥", category: "fitness", xpReward: 75, tier: "bronze", condition: s => s.currentStreak >= 3 },
+  { id: "streak_7", name: "Week Warrior", nameAr: "محارب الأسبوع", description: "7-day workout streak", descAr: "سلسلة تمارين ٧ أيام", icon: "⚡", category: "fitness", xpReward: 200, tier: "silver", condition: s => s.longestStreak >= 7 },
+  { id: "streak_14", name: "Consistency King", nameAr: "ملك الثبات", description: "14-day streak", descAr: "سلسلة ١٤ يومًا", icon: "👑", category: "fitness", xpReward: 400, tier: "gold", condition: s => s.longestStreak >= 14 },
+  { id: "streak_30", name: "Iron Will", nameAr: "الإرادة الحديدية", description: "30-day consistency streak", descAr: "سلسلة ٣٠ يومًا", icon: "🦁", category: "fitness", xpReward: 800, tier: "platinum", condition: s => s.longestStreak >= 30 },
+  { id: "sleep_tracker", name: "Sleep Logger", nameAr: "مسجّل النوم", description: "Track your sleep once", descAr: "تتبع نومك مرة واحدة", icon: "😴", category: "fitness", xpReward: 50, tier: "bronze", condition: s => s.totalSleepLogs >= 1 },
+  { id: "sleep_week", name: "Rest Master", nameAr: "سيد الراحة", description: "Track sleep 7 nights", descAr: "تتبع النوم ٧ ليالٍ", icon: "🌙", category: "fitness", xpReward: 150, tier: "silver", condition: s => s.totalSleepLogs >= 7 },
+  { id: "sleep_month", name: "Sleep Guardian", nameAr: "حارس النوم", description: "Track sleep 30 nights", descAr: "تتبع النوم ٣٠ ليلة", icon: "⭐", category: "fitness", xpReward: 400, tier: "gold", condition: s => s.totalSleepLogs >= 30 },
+  { id: "steps_10k", name: "10K Day", nameAr: "يوم العشرة آلاف", description: "Walk 10,000+ steps in a day", descAr: "امشِ أكثر من ١٠,٠٠٠ خطوة يوميًا", icon: "👟", category: "fitness", xpReward: 200, tier: "silver", condition: s => s.dailyMaxSteps >= 10000 },
+  { id: "steps_weekly_50k", name: "Active Week", nameAr: "أسبوع نشيط", description: "Walk 50K steps in a week", descAr: "امشِ ٥٠,٠٠٠ خطوة أسبوعيًا", icon: "🚶", category: "fitness", xpReward: 300, tier: "silver", condition: s => s.weeklySteps >= 50000 },
+  { id: "steps_weekly_100k", name: "Step Legend", nameAr: "أسطورة الخطوات", description: "Walk 100K steps in a week", descAr: "امشِ ١٠٠,٠٠٠ خطوة أسبوعيًا", icon: "🏃", category: "fitness", xpReward: 600, tier: "gold", condition: s => s.weeklySteps >= 100000 },
+  { id: "cardio_beginner", name: "Cardio Starter", nameAr: "مبتدئ الكارديو", description: "5 cardio workouts", descAr: "٥ تمارين كارديو", icon: "❤️", category: "fitness", xpReward: 150, tier: "bronze", condition: s => s.totalWorkouts >= 5 },
+  { id: "strength_beast", name: "Strength Beast", nameAr: "وحش القوة", description: "50 total workouts", descAr: "٥٠ تمرينًا إجماليًا", icon: "🦍", category: "fitness", xpReward: 500, tier: "gold", condition: s => s.totalWorkouts >= 50 },
+  { id: "active_lifestyle", name: "Active Lifestyle", nameAr: "نمط حياة نشيط", description: "30 days of tracked activity", descAr: "٣٠ يومًا من النشاط المتتبع", icon: "🌟", category: "fitness", xpReward: 400, tier: "gold", condition: s => s.daysActive >= 30 },
+  { id: "legendary_consistency", name: "Legendary Consistency", nameAr: "ثبات أسطوري", description: "60-day streak", descAr: "سلسلة ٦٠ يومًا", icon: "🔱", category: "fitness", xpReward: 2000, tier: "legendary", condition: s => s.longestStreak >= 60 },
+  { id: "burn_500", name: "Calorie Furnace", nameAr: "فرن السعرات", description: "Burn 500+ calories in a single workout", descAr: "احرق أكثر من ٥٠٠ سعرة في تمرين واحد", icon: "🌡️", category: "fitness", xpReward: 250, tier: "silver", condition: s => s.totalWorkouts >= 10 },
+  { id: "early_bird_workout", name: "Morning Warrior", nameAr: "محارب الصباح", description: "Log 5 morning workouts", descAr: "سجّل ٥ تمارين صباحية", icon: "🌄", category: "fitness", xpReward: 200, tier: "silver", condition: s => s.totalWorkouts >= 5 && s.daysActive >= 5 },
+  { id: "strength_master", name: "Strength Master", nameAr: "سيد القوة", description: "100 total workouts completed", descAr: "أكمل ١٠٠ تمرين", icon: "🥇", category: "fitness", xpReward: 1000, tier: "platinum", condition: s => s.totalWorkouts >= 100 },
+  { id: "cardio_master", name: "Cardio Master", nameAr: "سيد الكارديو", description: "Excellent cardio consistency", descAr: "ثبات ممتاز في الكارديو", icon: "💨", category: "fitness", xpReward: 700, tier: "gold", condition: s => s.totalWorkouts >= 30 && s.weeklySteps >= 70000 },
+  { id: "sleep_optimizer", name: "Sleep Optimizer", nameAr: "مُحسِّن النوم", description: "Track 60 nights of sleep", descAr: "تتبع ٦٠ ليلة من النوم", icon: "🌜", category: "fitness", xpReward: 800, tier: "platinum", condition: s => s.totalSleepLogs >= 60 },
+  { id: "weekly_champion", name: "Weekly Champion", nameAr: "بطل الأسبوع", description: "5+ workouts in a week", descAr: "أكثر من ٥ تمارين في الأسبوع", icon: "🏆", category: "fitness", xpReward: 350, tier: "gold", condition: s => s.totalWorkouts >= 5 && s.longestStreak >= 7 },
 
-  // ─── AI & SMART USAGE (15) ────────────────────────────────────────
-  { id: "first_ai_chat", name: "AI Explorer", description: "Send your first AI message", icon: "🤖", category: "ai", xpReward: 50, tier: "bronze", condition: s => s.aiMessages >= 1 },
-  { id: "ai_10", name: "Prompt Student", description: "Send 10 AI messages", icon: "💬", category: "ai", xpReward: 100, tier: "bronze", condition: s => s.aiMessages >= 10 },
-  { id: "ai_50", name: "AI Enthusiast", description: "Send 50 AI messages", icon: "🧠", category: "ai", xpReward: 250, tier: "silver", condition: s => s.aiMessages >= 50 },
-  { id: "ai_100", name: "Insight Master", description: "Send 100 AI messages", icon: "⚡", category: "ai", xpReward: 500, tier: "gold", condition: s => s.aiMessages >= 100 },
-  { id: "ai_daily_7", name: "AI Learner", description: "Chat with AI for 7 consecutive days", icon: "📅", category: "ai", xpReward: 300, tier: "silver", condition: s => s.aiMessages >= 7 && s.currentStreak >= 7 },
-  { id: "smart_decision", name: "Smart Decision Maker", description: "Follow AI suggestions (10+ messages)", icon: "💡", category: "ai", xpReward: 200, tier: "silver", condition: s => s.aiMessages >= 10 },
-  { id: "habit_builder", name: "Habit Builder", description: "Build habits with AI coaching", icon: "🏗️", category: "ai", xpReward: 400, tier: "gold", condition: s => s.aiMessages >= 30 && s.currentStreak >= 14 },
-  { id: "insight_follower", name: "Insight Follower", description: "Act on AI recommendations", icon: "🎯", category: "ai", xpReward: 300, tier: "silver", condition: s => s.aiMessages >= 20 && s.totalMeals >= 20 },
-  { id: "ai_500", name: "AI Devotee", description: "Send 500 AI messages", icon: "🌐", category: "ai", xpReward: 1000, tier: "platinum", condition: s => s.aiMessages >= 500 },
-  { id: "ai_daily_30", name: "AI Coach BFF", description: "Chat with AI 30 days in a row", icon: "🤝", category: "ai", xpReward: 600, tier: "gold", condition: s => s.aiMessages >= 30 && s.currentStreak >= 30 },
-  { id: "corrector", name: "Course Corrector", description: "Used AI to fix a bad habit", icon: "↩️", category: "ai", xpReward: 250, tier: "silver", condition: s => s.aiMessages >= 5 && s.avgMealIQ >= 15 },
+  // ─── AI & SMART USAGE ─────────────────────────────────────────────
+  { id: "first_ai_chat", name: "AI Explorer", nameAr: "مستكشف الذكاء الاصطناعي", description: "Send your first AI message", descAr: "أرسل أول رسالة للذكاء الاصطناعي", icon: "🤖", category: "ai", xpReward: 50, tier: "bronze", condition: s => s.aiMessages >= 1 },
+  { id: "ai_10", name: "Prompt Student", nameAr: "طالب متحمس", description: "Send 10 AI messages", descAr: "أرسل ١٠ رسائل للذكاء الاصطناعي", icon: "💬", category: "ai", xpReward: 100, tier: "bronze", condition: s => s.aiMessages >= 10 },
+  { id: "ai_50", name: "AI Enthusiast", nameAr: "عاشق الذكاء الاصطناعي", description: "Send 50 AI messages", descAr: "أرسل ٥٠ رسالة", icon: "🧠", category: "ai", xpReward: 250, tier: "silver", condition: s => s.aiMessages >= 50 },
+  { id: "ai_100", name: "Insight Master", nameAr: "سيد الرؤى", description: "Send 100 AI messages", descAr: "أرسل ١٠٠ رسالة للذكاء الاصطناعي", icon: "⚡", category: "ai", xpReward: 500, tier: "gold", condition: s => s.aiMessages >= 100 },
+  { id: "ai_daily_7", name: "AI Learner", nameAr: "متعلم الذكاء الاصطناعي", description: "Chat with AI for 7 consecutive days", descAr: "تحدث مع الذكاء الاصطناعي ٧ أيام متتالية", icon: "📅", category: "ai", xpReward: 300, tier: "silver", condition: s => s.aiMessages >= 7 && s.currentStreak >= 7 },
+  { id: "smart_decision", name: "Smart Decision Maker", nameAr: "صانع القرار الذكي", description: "Follow AI suggestions (10+ messages)", descAr: "اتبع اقتراحات الذكاء الاصطناعي (١٠+ رسائل)", icon: "💡", category: "ai", xpReward: 200, tier: "silver", condition: s => s.aiMessages >= 10 },
+  { id: "habit_builder", name: "Habit Builder", nameAr: "باني العادات", description: "Build habits with AI coaching", descAr: "بناء عادات مع مساعد الذكاء الاصطناعي", icon: "🏗️", category: "ai", xpReward: 400, tier: "gold", condition: s => s.aiMessages >= 30 && s.currentStreak >= 14 },
+  { id: "insight_follower", name: "Insight Follower", nameAr: "متبع التوجيهات", description: "Act on AI recommendations", descAr: "تصرف بناءً على توصيات الذكاء الاصطناعي", icon: "🎯", category: "ai", xpReward: 300, tier: "silver", condition: s => s.aiMessages >= 20 && s.totalMeals >= 20 },
+  { id: "ai_500", name: "AI Devotee", nameAr: "مدمن الذكاء الاصطناعي", description: "Send 500 AI messages", descAr: "أرسل ٥٠٠ رسالة", icon: "🌐", category: "ai", xpReward: 1000, tier: "platinum", condition: s => s.aiMessages >= 500 },
+  { id: "ai_daily_30", name: "AI Coach BFF", nameAr: "صديق المساعد الذكي", description: "Chat with AI 30 days in a row", descAr: "تحدث مع الذكاء الاصطناعي ٣٠ يومًا متتالية", icon: "🤝", category: "ai", xpReward: 600, tier: "gold", condition: s => s.aiMessages >= 30 && s.currentStreak >= 30 },
+  { id: "corrector", name: "Course Corrector", nameAr: "مصحح المسار", description: "Used AI to fix a bad habit", descAr: "استخدم الذكاء الاصطناعي لإصلاح عادة سيئة", icon: "↩️", category: "ai", xpReward: 250, tier: "silver", condition: s => s.aiMessages >= 5 && s.avgMealIQ >= 15 },
 
   // ─── MILESTONES ───────────────────────────────────────────────────
-  { id: "level_5", name: "Rising Star", description: "Reach Level 5", icon: "⭐", category: "milestones", xpReward: 300, tier: "silver", condition: s => s.level >= 5 },
-  { id: "level_10", name: "Achiever", description: "Reach Level 10", icon: "🌟", category: "milestones", xpReward: 600, tier: "gold", condition: s => s.level >= 10 },
-  { id: "level_20", name: "Elite Member", description: "Reach Level 20", icon: "💎", category: "milestones", xpReward: 1200, tier: "platinum", condition: s => s.level >= 20 },
-  { id: "level_30", name: "Legend", description: "Reach Level 30", icon: "👑", category: "milestones", xpReward: 3000, tier: "legendary", condition: s => s.level >= 30 },
-  { id: "xp_500", name: "XP Collector", description: "Earn 500 XP", icon: "✨", category: "milestones", xpReward: 100, tier: "bronze", condition: s => s.totalXP >= 500 },
-  { id: "xp_2000", name: "XP Hunter", description: "Earn 2,000 XP", icon: "💠", category: "milestones", xpReward: 300, tier: "silver", condition: s => s.totalXP >= 2000 },
-  { id: "xp_10000", name: "XP Legend", description: "Earn 10,000 XP", icon: "🏆", category: "milestones", xpReward: 1000, tier: "gold", condition: s => s.totalXP >= 10000 },
-  { id: "xp_50000", name: "XP Immortal", description: "Earn 50,000 XP", icon: "🔱", category: "milestones", xpReward: 5000, tier: "legendary", condition: s => s.totalXP >= 50000 },
-  { id: "all_starter", name: "Complete Beginner", description: "Log a meal, workout, and sleep", icon: "🎯", category: "milestones", xpReward: 150, tier: "bronze", condition: s => s.totalMeals >= 1 && s.totalWorkouts >= 1 && s.totalSleepLogs >= 1 },
-  { id: "well_rounded", name: "Well Rounded", description: "Log 10+ of each: meals, workouts, sleep", icon: "🌐", category: "milestones", xpReward: 500, tier: "gold", condition: s => s.totalMeals >= 10 && s.totalWorkouts >= 10 && s.totalSleepLogs >= 10 },
-  { id: "overachiever", name: "Overachiever", description: "Log 100+ meals, 50+ workouts", icon: "🚀", category: "milestones", xpReward: 1500, tier: "platinum", condition: s => s.totalMeals >= 100 && s.totalWorkouts >= 50 },
-  { id: "coins_100", name: "Coin Earner", description: "Earn 100 coins", icon: "🪙", category: "milestones", xpReward: 50, tier: "bronze", condition: s => s.totalXP >= 1000 },
-  { id: "coins_1000", name: "Coin Hoarder", description: "Earn 1,000 coins", icon: "💰", category: "milestones", xpReward: 300, tier: "silver", condition: s => s.totalXP >= 10000 },
+  { id: "level_5", name: "Rising Star", nameAr: "نجم صاعد", description: "Reach Level 5", descAr: "وصل للمستوى ٥", icon: "⭐", category: "milestones", xpReward: 300, tier: "silver", condition: s => s.level >= 5 },
+  { id: "level_10", name: "Achiever", nameAr: "المنجز", description: "Reach Level 10", descAr: "وصل للمستوى ١٠", icon: "🌟", category: "milestones", xpReward: 600, tier: "gold", condition: s => s.level >= 10 },
+  { id: "level_20", name: "Elite Member", nameAr: "عضو النخبة", description: "Reach Level 20", descAr: "وصل للمستوى ٢٠", icon: "💎", category: "milestones", xpReward: 1200, tier: "platinum", condition: s => s.level >= 20 },
+  { id: "level_30", name: "Legend", nameAr: "أسطورة", description: "Reach Level 30", descAr: "وصل للمستوى ٣٠", icon: "👑", category: "milestones", xpReward: 3000, tier: "legendary", condition: s => s.level >= 30 },
+  { id: "xp_500", name: "XP Collector", nameAr: "جامع الخبرة", description: "Earn 500 XP", descAr: "اكسب ٥٠٠ خبرة", icon: "✨", category: "milestones", xpReward: 100, tier: "bronze", condition: s => s.totalXP >= 500 },
+  { id: "xp_2000", name: "XP Hunter", nameAr: "صياد الخبرة", description: "Earn 2,000 XP", descAr: "اكسب ٢,٠٠٠ خبرة", icon: "💠", category: "milestones", xpReward: 300, tier: "silver", condition: s => s.totalXP >= 2000 },
+  { id: "xp_10000", name: "XP Legend", nameAr: "أسطورة الخبرة", description: "Earn 10,000 XP", descAr: "اكسب ١٠,٠٠٠ خبرة", icon: "🏆", category: "milestones", xpReward: 1000, tier: "gold", condition: s => s.totalXP >= 10000 },
+  { id: "xp_50000", name: "XP Immortal", nameAr: "خالد الخبرة", description: "Earn 50,000 XP", descAr: "اكسب ٥٠,٠٠٠ خبرة", icon: "🔱", category: "milestones", xpReward: 5000, tier: "legendary", condition: s => s.totalXP >= 50000 },
+  { id: "all_starter", name: "Complete Beginner", nameAr: "مبتدئ شامل", description: "Log a meal, workout, and sleep", descAr: "سجّل وجبة وتمريناً ونومًا", icon: "🎯", category: "milestones", xpReward: 150, tier: "bronze", condition: s => s.totalMeals >= 1 && s.totalWorkouts >= 1 && s.totalSleepLogs >= 1 },
+  { id: "well_rounded", name: "Well Rounded", nameAr: "المتكامل", description: "Log 10+ of each: meals, workouts, sleep", descAr: "سجّل ١٠+ من كل: وجبات، تمارين، نوم", icon: "🌐", category: "milestones", xpReward: 500, tier: "gold", condition: s => s.totalMeals >= 10 && s.totalWorkouts >= 10 && s.totalSleepLogs >= 10 },
+  { id: "overachiever", name: "Overachiever", nameAr: "المتفوق", description: "Log 100+ meals, 50+ workouts", descAr: "سجّل ١٠٠+ وجبة و٥٠+ تمرينًا", icon: "🚀", category: "milestones", xpReward: 1500, tier: "platinum", condition: s => s.totalMeals >= 100 && s.totalWorkouts >= 50 },
+  { id: "coins_100", name: "Coin Earner", nameAr: "كاسب العملات", description: "Earn 100 coins", descAr: "اكسب ١٠٠ عملة", icon: "🪙", category: "milestones", xpReward: 50, tier: "bronze", condition: s => s.totalXP >= 1000 },
+  { id: "coins_1000", name: "Coin Hoarder", nameAr: "مكنز العملات", description: "Earn 1,000 coins", descAr: "اكسب ١,٠٠٠ عملة", icon: "💰", category: "milestones", xpReward: 300, tier: "silver", condition: s => s.totalXP >= 10000 },
 
   // ─── ELITE / SPECIAL ──────────────────────────────────────────────
-  { id: "early_bird", name: "Early Bird", description: "Active before 7am regularly", icon: "🌅", category: "elite", xpReward: 300, tier: "gold", condition: s => s.daysActive >= 7 },
-  { id: "comeback_player", name: "Comeback Player", description: "Return after a long break", icon: "🦅", category: "elite", xpReward: 400, tier: "gold", condition: s => s.totalWorkouts >= 5 },
-  { id: "perfect_week", name: "Perfect Week", description: "Complete all daily goals for 7 days", icon: "🏅", category: "elite", xpReward: 800, tier: "platinum", condition: s => s.longestStreak >= 7 && s.avgMealIQ >= 16 },
-  { id: "elite_user", name: "Elite User", description: "Reach Level 15 with 50+ workouts", icon: "💎", category: "elite", xpReward: 1000, tier: "platinum", condition: s => s.level >= 15 && s.totalWorkouts >= 50 },
-  { id: "bodylogic_pro", name: "BodyLogic Pro", description: "Use all features for 30 days", icon: "🔱", category: "elite", xpReward: 1500, tier: "legendary", condition: s => s.daysActive >= 30 && s.aiMessages >= 50 },
-  { id: "discipline_master", name: "Discipline Master", description: "60-day consistent usage", icon: "🧘", category: "elite", xpReward: 2000, tier: "legendary", condition: s => s.longestStreak >= 60 },
-  { id: "legendary_human", name: "Legendary Human", description: "Reach the pinnacle of fitness", icon: "👑", category: "elite", xpReward: 5000, tier: "legendary", condition: s => s.level >= 20 && s.totalWorkouts >= 100 && s.totalMeals >= 200 },
-  { id: "midnight_grinder", name: "Midnight Grinder", description: "Log activity after midnight", icon: "🌙⚡", category: "elite", xpReward: 200, tier: "silver", condition: s => s.totalWorkouts >= 3 },
-  { id: "perfect_month", name: "Perfect Month", description: "All goals met for 30 days", icon: "🌕", category: "elite", xpReward: 3000, tier: "legendary", condition: s => s.longestStreak >= 30 && s.avgMealIQ >= 18 && s.weeklySteps >= 50000 },
-  { id: "unstoppable", name: "Unstoppable", description: "100-day streak", icon: "♾️", category: "elite", xpReward: 5000, tier: "legendary", condition: s => s.longestStreak >= 100 },
+  { id: "early_bird", name: "Early Bird", nameAr: "الطائر المبكر", description: "Active before 7am regularly", descAr: "نشيط قبل الساعة ٧ صباحًا بانتظام", icon: "🌅", category: "elite", xpReward: 300, tier: "gold", condition: s => s.daysActive >= 7 },
+  { id: "comeback_player", name: "Comeback Player", nameAr: "اللاعب العائد", description: "Return after a long break", descAr: "عد بعد انقطاع طويل", icon: "🦅", category: "elite", xpReward: 400, tier: "gold", condition: s => s.totalWorkouts >= 5 },
+  { id: "perfect_week", name: "Perfect Week", nameAr: "الأسبوع المثالي", description: "Complete all daily goals for 7 days", descAr: "أكمل كل الأهداف اليومية لـ٧ أيام", icon: "🏅", category: "elite", xpReward: 800, tier: "platinum", condition: s => s.longestStreak >= 7 && s.avgMealIQ >= 16 },
+  { id: "elite_user", name: "Elite User", nameAr: "مستخدم النخبة", description: "Reach Level 15 with 50+ workouts", descAr: "وصل للمستوى ١٥ مع ٥٠+ تمرينًا", icon: "💎", category: "elite", xpReward: 1000, tier: "platinum", condition: s => s.level >= 15 && s.totalWorkouts >= 50 },
+  { id: "bodylogic_pro", name: "BodyLogic Pro", nameAr: "محترف بودي لوجيك", description: "Use all features for 30 days", descAr: "استخدم جميع المميزات ٣٠ يومًا", icon: "🔱", category: "elite", xpReward: 1500, tier: "legendary", condition: s => s.daysActive >= 30 && s.aiMessages >= 50 },
+  { id: "discipline_master", name: "Discipline Master", nameAr: "سيد الانضباط", description: "60-day consistent usage", descAr: "استخدام ثابت لـ٦٠ يومًا", icon: "🧘", category: "elite", xpReward: 2000, tier: "legendary", condition: s => s.longestStreak >= 60 },
+  { id: "legendary_human", name: "Legendary Human", nameAr: "الإنسان الأسطوري", description: "Reach the pinnacle of fitness", descAr: "الوصول لقمة اللياقة", icon: "👑", category: "elite", xpReward: 5000, tier: "legendary", condition: s => s.level >= 20 && s.totalWorkouts >= 100 && s.totalMeals >= 200 },
+  { id: "midnight_grinder", name: "Midnight Grinder", nameAr: "المكدح الليلي", description: "Log activity after midnight", descAr: "سجّل نشاطًا بعد منتصف الليل", icon: "🌙⚡", category: "elite", xpReward: 200, tier: "silver", condition: s => s.totalWorkouts >= 3 },
+  { id: "perfect_month", name: "Perfect Month", nameAr: "الشهر المثالي", description: "All goals met for 30 days", descAr: "تحقيق جميع الأهداف لـ٣٠ يومًا", icon: "🌕", category: "elite", xpReward: 3000, tier: "legendary", condition: s => s.longestStreak >= 30 && s.avgMealIQ >= 18 && s.weeklySteps >= 50000 },
+  { id: "unstoppable", name: "Unstoppable", nameAr: "لا يُوقَف", description: "100-day streak", descAr: "سلسلة ١٠٠ يوم", icon: "♾️", category: "elite", xpReward: 5000, tier: "legendary", condition: s => s.longestStreak >= 100 },
 
   // ─── LIFESTYLE ────────────────────────────────────────────────────
-  { id: "lifestyle_week", name: "Healthy Week", description: "Track all pillars for 7 days", icon: "🌿", category: "lifestyle", xpReward: 300, tier: "silver", condition: s => s.totalMeals >= 7 && s.totalWorkouts >= 3 && s.totalSleepLogs >= 7 && s.totalWaterDays >= 7 },
-  { id: "lifestyle_month", name: "Healthy Month", description: "Consistent healthy lifestyle for 30 days", icon: "🌺", category: "lifestyle", xpReward: 1500, tier: "platinum", condition: s => s.longestStreak >= 30 && s.totalMeals >= 30 && s.totalWorkouts >= 15 },
-  { id: "life_transformer", name: "Life Transformer", description: "Major lifestyle transformation", icon: "🦋", category: "lifestyle", xpReward: 3000, tier: "legendary", condition: s => s.longestStreak >= 60 && s.totalMeals >= 100 && s.totalWorkouts >= 50 },
-  { id: "wellness_seeker", name: "Wellness Seeker", description: "Track sleep, water, meals & fitness", icon: "☯️", category: "lifestyle", xpReward: 200, tier: "silver", condition: s => s.totalSleepLogs >= 5 && s.totalWaterDays >= 5 && s.totalMeals >= 10 && s.totalWorkouts >= 5 },
-  { id: "balanced_life", name: "Balanced Life", description: "Equal effort in all health areas", icon: "⚖️", category: "lifestyle", xpReward: 500, tier: "gold", condition: s => s.totalMeals >= 20 && s.totalWorkouts >= 10 && s.totalSleepLogs >= 20 && s.totalWaterDays >= 20 },
+  { id: "lifestyle_week", name: "Healthy Week", nameAr: "أسبوع صحي", description: "Track all pillars for 7 days", descAr: "تتبع كل المحاور ٧ أيام", icon: "🌿", category: "lifestyle", xpReward: 300, tier: "silver", condition: s => s.totalMeals >= 7 && s.totalWorkouts >= 3 && s.totalSleepLogs >= 7 && s.totalWaterDays >= 7 },
+  { id: "lifestyle_month", name: "Healthy Month", nameAr: "شهر صحي", description: "Consistent healthy lifestyle for 30 days", descAr: "نمط حياة صحي متسق لـ٣٠ يومًا", icon: "🌺", category: "lifestyle", xpReward: 1500, tier: "platinum", condition: s => s.longestStreak >= 30 && s.totalMeals >= 30 && s.totalWorkouts >= 15 },
+  { id: "life_transformer", name: "Life Transformer", nameAr: "محوّل الحياة", description: "Major lifestyle transformation", descAr: "تحويل نمط الحياة بشكل جذري", icon: "🦋", category: "lifestyle", xpReward: 3000, tier: "legendary", condition: s => s.longestStreak >= 60 && s.totalMeals >= 100 && s.totalWorkouts >= 50 },
+  { id: "wellness_seeker", name: "Wellness Seeker", nameAr: "باحث العافية", description: "Track sleep, water, meals & fitness", descAr: "تتبع النوم والماء والوجبات واللياقة", icon: "☯️", category: "lifestyle", xpReward: 200, tier: "silver", condition: s => s.totalSleepLogs >= 5 && s.totalWaterDays >= 5 && s.totalMeals >= 10 && s.totalWorkouts >= 5 },
+  { id: "balanced_life", name: "Balanced Life", nameAr: "حياة متوازنة", description: "Equal effort in all health areas", descAr: "جهد متكافئ في جميع مجالات الصحة", icon: "⚖️", category: "lifestyle", xpReward: 500, tier: "gold", condition: s => s.totalMeals >= 20 && s.totalWorkouts >= 10 && s.totalSleepLogs >= 20 && s.totalWaterDays >= 20 },
 ];
 
 export const ALL_TITLES: Title[] = [
