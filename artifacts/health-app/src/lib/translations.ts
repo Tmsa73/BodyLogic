@@ -473,6 +473,16 @@ const translations = {
     profile_health_saved: "Health profile saved",
     profile_goals_saved: "Goals saved!",
 
+    // Morning Brief
+    morning_brief_title: "Morning Brief",
+    morning_brief_subtitle: "Your personalized daily debrief",
+    morning_brief_recap: "Yesterday",
+    morning_brief_plan: "Today's Focus",
+    morning_brief_insight: "Insight",
+    morning_brief_dismiss: "Got it",
+    morning_brief_loading: "Preparing your brief...",
+    morning_brief_open_coach: "Ask AI Coach",
+
     // Common
     common_steps: "steps",
     common_min: "min",
@@ -958,6 +968,16 @@ const translations = {
     profile_condition_placeholder: "مثال: ألم الركبة، الأدوية، إصابات سابقة...",
     profile_health_saved: "تم حفظ الملف الصحي",
     profile_goals_saved: "تم حفظ الأهداف!",
+
+    // Morning Brief
+    morning_brief_title: "الملخص الصباحي",
+    morning_brief_subtitle: "تقريرك الشخصي اليومي",
+    morning_brief_recap: "الأمس",
+    morning_brief_plan: "تركيزك اليوم",
+    morning_brief_insight: "رؤية",
+    morning_brief_dismiss: "فهمت",
+    morning_brief_loading: "جاري تحضير ملخصك...",
+    morning_brief_open_coach: "اسأل المدرب",
 
     // Common
     common_steps: "خطوة",

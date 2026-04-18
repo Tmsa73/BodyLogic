@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useLang } from "@/contexts/language-context";
 import { MealIqQuiz } from "@/components/meal-iq-quiz";
+import { MorningBriefCard } from "@/components/morning-brief-card";
 import { playGamificationSound } from "@/lib/sounds";
 import { getFoodHistory, saveFoodToHistory, type FoodHistoryItem } from "@/lib/food-database";
 
@@ -390,6 +391,9 @@ export default function Home() {
           )}
           <p className="text-xs text-muted-foreground mt-0.5">{t("home_snapshot")}</p>
         </div>
+
+        {/* Morning Brief */}
+        <MorningBriefCard />
 
         {/* 4 Stat Cards Row */}
         <div className="grid grid-cols-4 gap-2">

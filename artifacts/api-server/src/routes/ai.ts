@@ -196,4 +196,113 @@ router.get("/ai/insights", async (req, res): Promise<void> => {
   res.json(GetAiInsightsResponse.parse(insights));
 });
 
+router.get("/ai/morning-brief", async (req, res): Promise<void> => {
+  const authUser = await getUserFromRequest(req);
+  const today = new Date();
+  const yesterdayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+  const yesterdayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+  let userName = "there";
+  let goal = "improve fitness";
+  let calorieGoal = 2000;
+  let waterGoalMl = 3000;
+
+  if (authUser?.id) {
+    const users = await db.select().from(usersTable).where(eq(usersTable.id, authUser.id)).limit(1);
+    if (users[0]) {
+      userName = users[0].name.split(" ")[0] ?? "there";
+      goal = (users[0].goal ?? "improve_fitness").replace(/_/g, " ");
+    }
+  }
+
+  const profiles = await db.select().from(profileTable).limit(1);
+  if (profiles[0]) {
+    calorieGoal = profiles[0].dailyCalorieGoal;
+    waterGoalMl = profiles[0].dailyWaterGoalMl;
+  }
+
+  const [yesterdayMeals, yesterdayWorkouts, lastSleep, yesterdayWater, weekWorkouts] = await Promise.all([
+    db.select().from(mealsTable).where(and(gte(mealsTable.loggedAt, yesterdayStart), lt(mealsTable.loggedAt, yesterdayEnd))),
+    db.select().from(workoutsTable).where(and(gte(workoutsTable.loggedAt, yesterdayStart), lt(workoutsTable.loggedAt, yesterdayEnd))),
+    db.select().from(sleepTable).orderBy(desc(sleepTable.bedtime)).limit(1),
+    db.select().from(waterLogsTable).where(and(gte(waterLogsTable.loggedAt, yesterdayStart), lt(waterLogsTable.loggedAt, yesterdayEnd))),
+    db.select().from(workoutsTable).where(gte(workoutsTable.loggedAt, weekAgo)),
+  ]);
+
+  const yCals = yesterdayMeals.reduce((s, m) => s + m.calories, 0);
+  const yProtein = yesterdayMeals.reduce((s, m) => s + m.protein, 0);
+  const yWaterMl = yesterdayWater.reduce((s, w) => s + w.amountMl, 0);
+  const yWorkoutMins = yesterdayWorkouts.reduce((s, w) => s + w.durationMinutes, 0);
+  const sleepHours = lastSleep[0]?.durationHours ?? 0;
+  const weeklyCount = weekWorkouts.length;
+  const calDiff = yCals - calorieGoal;
+  const waterGlasses = Math.round(yWaterMl / 250);
+
+  // Build RECAP (what happened yesterday)
+  let recap: string;
+  let recapAr: string;
+
+  if (yCals === 0 && yWorkoutMins === 0) {
+    recap = `Yesterday was a quiet day — no meals or workouts logged. That's okay. What matters is what you do today.`;
+    recapAr = `كان الأمس يومًا هادئًا — لم تُسجَّل وجبات أو تمارين. لا بأس. المهم ما ستفعله اليوم.`;
+  } else if (calDiff > 300) {
+    recap = `Yesterday you ate ${yCals} kcal — ${calDiff} over your ${calorieGoal} kcal goal. You also logged ${yWorkoutMins > 0 ? `${yWorkoutMins} min of exercise` : "no workouts"}. Protein: ${yProtein}g.`;
+    recapAr = `تناولت أمس ${yCals} سعرة — أعلى من هدفك البالغ ${calorieGoal} بمقدار ${calDiff} سعرة. ${yWorkoutMins > 0 ? `سجّلت ${yWorkoutMins} دقيقة تمارين.` : "لم تُسجّل تمارين."} البروتين: ${yProtein}غ.`;
+  } else if (calDiff < -400) {
+    recap = `Yesterday you ate ${yCals} kcal — ${Math.abs(calDiff)} under your goal. ${yWorkoutMins > 0 ? `Combined with ${yWorkoutMins} min of training, your body is in recovery mode.` : "Make sure you're fueling properly."} Protein: ${yProtein}g.`;
+    recapAr = `تناولت أمس ${yCals} سعرة — أقل من هدفك بـ${Math.abs(calDiff)} سعرة. ${yWorkoutMins > 0 ? `مع ${yWorkoutMins} دقيقة تمارين، جسمك في طور التعافي.` : "تأكد من تناول ما يكفي من الطاقة."} البروتين: ${yProtein}غ.`;
+  } else {
+    recap = `Yesterday you nailed it — ${yCals} kcal logged${yWorkoutMins > 0 ? `, ${yWorkoutMins} min of training` : ""}${sleepHours > 0 ? `, ${sleepHours}h sleep` : ""}. You're tracking exactly right.`;
+    recapAr = `أبليت بلاءً حسنًا أمس — ${yCals} سعرة${yWorkoutMins > 0 ? `، ${yWorkoutMins} دقيقة تمارين` : ""}${sleepHours > 0 ? `، ${sleepHours} ساعات نوم` : ""}. أنت على المسار الصحيح تمامًا.`;
+  }
+
+  // Build PLAN (what to focus on today)
+  const plans: string[] = [];
+  const plansAr: string[] = [];
+
+  if (sleepHours > 0 && sleepHours < 6.5) {
+    plans.push("prioritize short rest breaks today — your sleep was short");
+    plansAr.push("أعطِ جسمك استراحات قصيرة اليوم — كان نومك قصيرًا");
+  }
+  if (waterGlasses < 6) {
+    plans.push(`drink at least 8 glasses of water — you had ${waterGlasses} yesterday`);
+    plansAr.push(`اشرب 8 أكواب ماء على الأقل — شربت ${waterGlasses} أمس`);
+  }
+  if (weeklyCount < 3) {
+    plans.push("a 30-min workout today would boost your weekly streak");
+    plansAr.push("30 دقيقة تمارين اليوم ستعزز سلسلة أسبوعك");
+  }
+  if (yProtein < 80) {
+    plans.push(`aim for more protein today — yesterday's ${yProtein}g was light`);
+    plansAr.push(`ركّز على البروتين اليوم — ${yProtein}غ أمس كان قليلاً`);
+  }
+  if (plans.length === 0) {
+    plans.push(`stay consistent with your ${goal} goal — you're building real momentum`);
+    plansAr.push(`حافظ على ثباتك نحو هدف "${goal}" — أنت تبني زخمًا حقيقيًا`);
+  }
+
+  const plan = `Today's focus: ${plans.slice(0, 2).join(" and ")}.`;
+  const planAr = `تركيزك اليوم: ${plansAr.slice(0, 2).join(" و")}.`;
+
+  // Build INSIGHT (motivational + data-driven)
+  const insights: Array<{ en: string; ar: string }> = [
+    { en: `At ${weeklyCount} workouts this week, you're ${weeklyCount >= 4 ? "above average — keep that elite consistency" : "building your habit — every session compounds"}.`, ar: `بـ${weeklyCount} تمارين هذا الأسبوع، أنت ${weeklyCount >= 4 ? "فوق المتوسط — حافظ على هذا الثبات" : "تبني عادتك — كل جلسة لها أثر متراكم"}.` },
+    { en: `${sleepHours >= 7 ? `Your ${sleepHours}h sleep is an asset — well-rested brains make better food choices.` : "Protecting your sleep is protecting your progress."}`, ar: `${sleepHours >= 7 ? `نومك ${sleepHours} ساعات ميزة حقيقية — العقل المرتاح يختار أفضل.` : "حماية نومك تعني حماية تقدمك."}` },
+    { en: `Consistency beats intensity every time. Showing up daily is what separates long-term results from short bursts.`, ar: `الانتظام أقوى من الشدة دائمًا. الالتزام اليومي هو ما يصنع النتائج الحقيقية.` },
+  ];
+  const pick = insights[weeklyCount % insights.length] ?? insights[0]!;
+
+  res.json({
+    recap,
+    recapAr,
+    plan,
+    planAr,
+    insight: pick.en,
+    insightAr: pick.ar,
+    userName,
+    generatedAt: new Date().toISOString(),
+  });
+});
+
 export default router;
