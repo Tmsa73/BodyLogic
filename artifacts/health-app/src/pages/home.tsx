@@ -149,15 +149,16 @@ export default function Home() {
     { label: t("nav_fitness"), score: stepsPct, color: "bg-secondary", icon: Dumbbell },
     { label: t("home_sleep_label"), score: Math.min(100, Math.round((dashboard.lastSleepHours / 8) * 100)), color: "bg-accent", icon: Moon },
     { label: t("home_water_label"), score: waterPct, color: "bg-blue-400", icon: Droplets },
-    { label: "Habit", score: Math.min(100, Math.round((streak / 7) * 100)), color: "bg-yellow-400", icon: Flame },
+    { label: t("home_habit"), score: Math.min(100, Math.round((streak / 7) * 100)), color: "bg-yellow-400", icon: Flame },
   ];
 
   const getPillarTag = (s: number) =>
-    s >= 70 ? { label: "Pro", cls: "text-primary" } :
-    s >= 40 ? { label: "Good", cls: "text-yellow-400" } :
-    { label: "Low", cls: "text-muted-foreground" };
+    s >= 70 ? { label: t("grade_pro"), key: "Pro", cls: "text-primary" } :
+    s >= 40 ? { label: t("grade_good"), key: "Good", cls: "text-yellow-400" } :
+    { label: t("grade_low"), key: "Low", cls: "text-muted-foreground" };
 
-  const gradeLevel = balanceScore >= 75 ? "Pro" : balanceScore >= 40 ? "Good" : "Low";
+  const gradeKey = balanceScore >= 75 ? "Pro" : balanceScore >= 40 ? "Good" : "Low";
+  const gradeLevel = gradeKey === "Pro" ? t("grade_pro") : gradeKey === "Good" ? t("grade_good") : t("grade_low");
   const gradeStyle: Record<string, string> = {
     "Pro": "bg-primary/15 text-primary border-primary/30",
     "Good": "bg-yellow-400/15 text-yellow-400 border-yellow-400/30",
@@ -440,7 +441,7 @@ export default function Home() {
           <div className="bg-card rounded-2xl p-4 border border-border/50 hover-elevate">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-black text-foreground uppercase tracking-wider">{t("home_life_balance")}</span>
-              <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full border", gradeStyle[gradeLevel])}>
+              <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full border", gradeStyle[gradeKey])}>
                 {gradeLevel}
               </span>
             </div>
@@ -448,7 +449,7 @@ export default function Home() {
               <svg width="76" height="76" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="45" fill="none" stroke="hsl(var(--muted))" strokeWidth="9" />
                 <circle cx="50" cy="50" r="45" fill="none"
-                  stroke={gradeLevel === "Pro" ? "hsl(var(--primary))" : gradeLevel === "Good" ? "#eab308" : "hsl(var(--muted-foreground))"}
+                  stroke={gradeKey === "Pro" ? "hsl(var(--primary))" : gradeKey === "Good" ? "#eab308" : "hsl(var(--muted-foreground))"}
                   strokeWidth="9" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} transform="rotate(-90 50 50)" className="transition-all duration-1000" />
                 <text x="50" y="47" textAnchor="middle" style={{ fill: "hsl(var(--foreground))", fontSize: "20px", fontWeight: "900" }}>{balanceScore}</text>
                 <text x="50" y="62" textAnchor="middle" style={{ fill: "hsl(var(--muted-foreground))", fontSize: "9px", fontWeight: "700" }}>/ 100</text>
@@ -481,7 +482,7 @@ export default function Home() {
                 momentumData.label === "Good" ? "bg-yellow-400/15 text-yellow-400 border-yellow-400/30" :
                 "bg-muted/50 text-muted-foreground border-border/30"
               )}>
-                {momentumData.label}
+                {momentumData.label === "Pro" ? t("grade_pro") : momentumData.label === "Good" ? t("grade_good") : t("grade_low")}
               </span>
             </div>
             <div className="flex items-center justify-center py-1">
@@ -500,7 +501,7 @@ export default function Home() {
             <div className="space-y-1.5 mt-2">
               {factors.map(f => {
                 const pct = Math.round((f.pts / f.max) * 100);
-                const ftag = pct >= 70 ? { label: "Pro", cls: "text-primary" } : pct >= 40 ? { label: "Good", cls: "text-yellow-400" } : { label: "Low", cls: "text-muted-foreground" };
+                const ftag = pct >= 70 ? { label: t("grade_pro"), cls: "text-primary" } : pct >= 40 ? { label: t("grade_good"), cls: "text-yellow-400" } : { label: t("grade_low"), cls: "text-muted-foreground" };
                 const FIcon = f.icon;
                 return (
                   <div key={f.label} className="flex items-center gap-1.5">

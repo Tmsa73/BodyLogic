@@ -490,16 +490,16 @@ function LogWorkoutDialog() {
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label className="text-xs">Type</Label>
+              <Label className="text-xs">{t("fitness_type")}</Label>
               <Select value={form.type} onValueChange={v => setForm(f => ({ ...f, type: v }))}>
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="strength">Strength</SelectItem>
-                  <SelectItem value="cardio">Cardio</SelectItem>
-                  <SelectItem value="hiit">HIIT</SelectItem>
-                  <SelectItem value="yoga">Yoga</SelectItem>
-                  <SelectItem value="flexibility">Flexibility</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="strength">{t("fitness_strength")}</SelectItem>
+                  <SelectItem value="cardio">{t("fitness_cardio")}</SelectItem>
+                  <SelectItem value="hiit">{t("fitness_hiit")}</SelectItem>
+                  <SelectItem value="yoga">{t("fitness_yoga")}</SelectItem>
+                  <SelectItem value="flexibility">{t("fitness_flexibility")}</SelectItem>
+                  <SelectItem value="other">{t("fitness_other")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -508,9 +508,9 @@ function LogWorkoutDialog() {
               <Select value={form.intensity} onValueChange={v => setForm(f => ({ ...f, intensity: v }))}>
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="moderate">Moderate</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="low">{t("fitness_low")}</SelectItem>
+                  <SelectItem value="moderate">{t("fitness_moderate")}</SelectItem>
+                  <SelectItem value="high">{t("fitness_high")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -601,6 +601,7 @@ function LogSleepDialog() {
       }
     }, {
       onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getGetSleepLogsQueryKey({ limit: 7 }) });
         qc.invalidateQueries({ queryKey: getGetSleepLogsQueryKey() });
         setOpen(false);
         toast({ title: `Sleep logged — ${preview.hours}h!` });
@@ -656,10 +657,10 @@ function LogSleepDialog() {
             <Select value={form.quality} onValueChange={v => setForm(f => ({ ...f, quality: v }))}>
               <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="poor">Poor</SelectItem>
-                <SelectItem value="fair">Fair</SelectItem>
-                <SelectItem value="good">Good</SelectItem>
-                <SelectItem value="excellent">Excellent</SelectItem>
+                <SelectItem value="poor">{t("fitness_poor")}</SelectItem>
+                <SelectItem value="fair">{t("fitness_fair")}</SelectItem>
+                <SelectItem value="good">{t("fitness_good")}</SelectItem>
+                <SelectItem value="excellent">{t("fitness_excellent")}</SelectItem>
               </SelectContent>
             </Select>
           </div>

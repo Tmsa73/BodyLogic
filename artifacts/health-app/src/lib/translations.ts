@@ -345,6 +345,17 @@ const translations = {
     profile_active: "Active",
     profile_very_active: "Very Active",
 
+    // Grade labels
+    grade_pro: "Pro",
+    grade_good: "Good",
+    grade_low: "Low",
+
+    // Home
+    home_habit: "Habit",
+
+    // Nutrition extras
+    nutrition_fiber_sugar: "Fiber & Sugar",
+
     // Common
     common_steps: "steps",
     common_min: "min",
@@ -356,6 +367,7 @@ const translations = {
     common_max: "max",
     common_goal: "goal",
     common_loading: "Loading...",
+    common_recent: "Recent",
   },
 
   ar: {
@@ -702,6 +714,17 @@ const translations = {
     profile_active: "نشيط",
     profile_very_active: "نشيط جداً",
 
+    // Grade labels
+    grade_pro: "محترف",
+    grade_good: "جيد",
+    grade_low: "منخفض",
+
+    // Home
+    home_habit: "العادة",
+
+    // Nutrition extras
+    nutrition_fiber_sugar: "الألياف والسكر",
+
     // Common
     common_steps: "خطوة",
     common_min: "د",
@@ -713,6 +736,7 @@ const translations = {
     common_max: "الحد الأقصى",
     common_goal: "هدف",
     common_loading: "جارٍ التحميل...",
+    common_recent: "حديث",
   },
 } as const;
 

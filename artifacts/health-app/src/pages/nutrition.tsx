@@ -406,11 +406,11 @@ export default function Nutrition() {
 
           {/* Fiber & Sugar */}
           <div className="pt-2 border-t border-border/30 space-y-2.5">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Fiber & Sugar</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t("nutrition_fiber_sugar")}</p>
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-muted-foreground font-medium">Fiber</span>
-                <span className="font-bold">{(summary as any).totalFiber?.toFixed(1) ?? 0}g <span className="text-muted-foreground font-normal">/ 25g</span></span>
+                <span className="text-muted-foreground font-medium">{t("nutrition_fiber")}</span>
+                <span className="font-bold">{(summary as any).totalFiber?.toFixed(1) ?? 0}g <span className="text-muted-foreground font-normal">{t("nutrition_fiber_goal")}</span></span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div className="h-full bg-green-400 rounded-full transition-all" style={{ width: `${Math.min(100, ((summary as any).totalFiber ?? 0) / 25 * 100)}%` }} />
@@ -418,8 +418,8 @@ export default function Nutrition() {
             </div>
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-muted-foreground font-medium">Sugar</span>
-                <span className="font-bold">{(summary as any).totalSugar?.toFixed(1) ?? 0}g <span className="text-muted-foreground font-normal">/ 36g limit</span></span>
+                <span className="text-muted-foreground font-medium">{t("nutrition_sugar")}</span>
+                <span className="font-bold">{(summary as any).totalSugar?.toFixed(1) ?? 0}g <span className="text-muted-foreground font-normal">{t("nutrition_sugar_limit")}</span></span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div className={cn("h-full rounded-full transition-all", ((summary as any).totalSugar ?? 0) > 30 ? "bg-destructive" : "bg-orange-400")} style={{ width: `${Math.min(100, ((summary as any).totalSugar ?? 0) / 36 * 100)}%` }} />
@@ -564,7 +564,7 @@ export default function Nutrition() {
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-1.5">
                                     <p className="text-sm font-bold truncate">{food.name}</p>
-                                    {food.isHistory && <span className="text-[9px] font-black text-amber-500 bg-amber-500/10 px-1 py-0.5 rounded shrink-0">Recent</span>}
+                                    {food.isHistory && <span className="text-[9px] font-black text-amber-500 bg-amber-500/10 px-1 py-0.5 rounded shrink-0">{t("common_recent")}</span>}
                                   </div>
                                   <p className="text-[10px] text-muted-foreground">
                                     {food.calories} kcal · {food.protein}g protein · {food.carbs}g carbs · {food.fat}g fat
