@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLang } from "@/contexts/language-context";
 import { useGetProgress, useGetProfileStats, useGetMissions } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Trophy, Zap, Lock, CheckCircle2, Flame, Crown, Target, Shield, Brain, Sword, TrendingUp, Coins, Utensils, Dumbbell, Moon, Heart, Bot, Droplets, Sun } from "lucide-react";
@@ -24,14 +25,14 @@ import {
 type Tab = "achievements" | "titles" | "missions" | "bosses";
 type MissionTab = "daily" | "weekly" | "smart";
 
-const CATEGORY_TABS: { key: AchievementCategory | "all"; label: string; icon: string }[] = [
-  { key: "all", label: "All", icon: "🏆" },
-  { key: "nutrition", label: "Food", icon: "🥗" },
-  { key: "fitness", label: "Fitness", icon: "💪" },
-  { key: "ai", label: "AI", icon: "🤖" },
-  { key: "milestones", label: "Progress", icon: "📈" },
-  { key: "elite", label: "Elite", icon: "👑" },
-  { key: "lifestyle", label: "Lifestyle", icon: "🌿" },
+const CATEGORY_TABS: { key: AchievementCategory | "all"; labelKey: string; icon: string }[] = [
+  { key: "all", labelKey: "rewards_cat_all", icon: "🏆" },
+  { key: "nutrition", labelKey: "rewards_cat_meals", icon: "🥗" },
+  { key: "fitness", labelKey: "rewards_cat_fitness", icon: "💪" },
+  { key: "ai", labelKey: "rewards_cat_ai", icon: "🤖" },
+  { key: "milestones", labelKey: "rewards_cat_milestones", icon: "📈" },
+  { key: "elite", labelKey: "rewards_cat_elite", icon: "👑" },
+  { key: "lifestyle", labelKey: "rewards_cat_lifestyle", icon: "🌿" },
 ];
 
 const DIFFICULTY_CONFIG = {
@@ -42,6 +43,7 @@ const DIFFICULTY_CONFIG = {
 };
 
 export default function Achievements() {
+  const { t } = useLang();
   const [tab, setTab] = useState<Tab>("achievements");
   const [catFilter, setCatFilter] = useState<AchievementCategory | "all">("all");
   const [tierFilter, setTierFilter] = useState<BadgeTier | "all">("all");
@@ -191,7 +193,7 @@ export default function Achievements() {
                     catFilter === c.key ? "bg-primary text-primary-foreground" : "bg-muted/60 text-muted-foreground border border-border/40"
                   )}
                 >
-                  {c.icon} {c.label}
+                  {c.icon} {t(c.labelKey as any)}
                 </button>
               ))}
             </div>

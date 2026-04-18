@@ -29,7 +29,7 @@ function BottomNav() {
 
   const tabs = [
     { href: "/fitness", icon: Dumbbell, label: t("nav_fitness") },
-    { href: "/ai-coach", icon: Sparkles, label: "AI" },
+    { href: "/ai-coach", icon: Sparkles, label: t("nav_ai") },
     { href: "/", icon: Home, label: t("nav_home") },
     { href: "/nutrition", icon: Utensils, label: t("nav_nutrition") },
     { href: "/profile", icon: User, label: t("nav_profile") },
