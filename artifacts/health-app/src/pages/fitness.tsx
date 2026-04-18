@@ -30,7 +30,20 @@ export default function Fitness() {
   const deleteWorkout = useDeleteWorkout();
   const qc = useQueryClient();
   const { toast } = useToast();
-  const { t } = useLang();
+  const { t, lang } = useLang();
+
+  const typeLabel: Record<string, string> = {
+    strength: t("fitness_strength"), cardio: t("fitness_cardio"), hiit: t("fitness_hiit"),
+    yoga: t("fitness_yoga"), flexibility: t("fitness_flexibility"), other: t("fitness_other"),
+  };
+  const intensityLabel: Record<string, string> = {
+    low: t("fitness_low"), moderate: t("fitness_moderate"), high: t("fitness_high"),
+  };
+  const qualityLabel: Record<string, string> = {
+    excellent: t("fitness_excellent"), good: t("fitness_good"),
+    fair: t("fitness_fair"), poor: t("fitness_poor"),
+  };
+  const locale = lang === "ar" ? "ar-SA" : "en-US";
 
   const isLoading = isLoadingSummary || isLoadingWorkouts || isLoadingSleep || isLoadingSteps;
 
@@ -39,7 +52,7 @@ export default function Fitness() {
       onSuccess: () => {
         qc.invalidateQueries({ queryKey: getGetWorkoutsQueryKey({ date }) });
         qc.invalidateQueries({ queryKey: getGetFitnessSummaryQueryKey() });
-        toast({ title: "Workout removed" });
+        toast({ title: t("fitness_workout_removed") });
       }
     });
   };
@@ -48,7 +61,7 @@ export default function Fitness() {
 
   const todaySleep = sleepLogs?.[0];
   const sleepChartData = [...(sleepLogs || [])].reverse().map(s => ({
-    date: new Date(s.date).toLocaleDateString([], { weekday: 'short' }),
+    date: new Date(s.date).toLocaleDateString(locale, { weekday: 'short' }),
     hours: s.durationHours
   }));
 
@@ -61,7 +74,7 @@ export default function Fitness() {
         <div className="flex justify-between items-end pt-2">
           <div>
             <h1 className="text-2xl font-black tracking-tight gradient-text">{t("nav_fitness")}</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">{new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{new Date().toLocaleDateString(locale, { weekday: "long", month: "long", day: "numeric" })}</p>
           </div>
         </div>
 
@@ -72,7 +85,7 @@ export default function Fitness() {
               <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{t("fitness_weekly")}</p>
               <div className="flex items-baseline gap-1 mt-1">
                 <span className="text-2xl font-black">{summary.totalMinutes}</span>
-                <span className="text-xs font-medium text-muted-foreground">min</span>
+                <span className="text-xs font-medium text-muted-foreground">{t("unit_min")}</span>
               </div>
             </div>
             <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
@@ -109,7 +122,7 @@ export default function Fitness() {
           <div className="bg-blue-500/10 rounded-2xl p-4 border border-blue-500/20 hover-elevate flex items-center gap-3">
             <Timer className="w-6 h-6 text-blue-500 shrink-0" />
             <div>
-              <p className="text-2xl font-black text-blue-600 dark:text-blue-400 leading-none">{summary.avgDuration}<span className="text-sm font-bold ml-0.5">m</span></p>
+              <p className="text-2xl font-black text-blue-600 dark:text-blue-400 leading-none">{summary.avgDuration}<span className="text-sm font-bold ms-0.5">{t("unit_min")}</span></p>
               <p className="text-[10px] font-bold uppercase tracking-wider text-blue-600/70 dark:text-blue-400/70 mt-1">{t("fitness_avg_workout")}</p>
             </div>
           </div>
@@ -151,8 +164,8 @@ export default function Fitness() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold truncate">{workout.name}</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-[10px] font-bold text-secondary uppercase bg-secondary/10 px-1.5 py-0.5 rounded">{workout.type}</span>
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded">{workout.intensity}</span>
+                      <span className="text-[10px] font-bold text-secondary uppercase bg-secondary/10 px-1.5 py-0.5 rounded">{typeLabel[workout.type] ?? workout.type}</span>
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded">{intensityLabel[workout.intensity] ?? workout.intensity}</span>
                     </div>
                   </div>
                   <div className="text-right flex items-center gap-2">
@@ -166,7 +179,7 @@ export default function Fitness() {
                               <p className={cn("text-sm font-black", durCheck.status === "invalid" && "text-destructive line-through opacity-60")}>
                                 {workout.durationMinutes}
                               </p>
-                              <span className="text-xs text-muted-foreground">min</span>
+                              <span className="text-xs text-muted-foreground">{t("unit_min")}</span>
                               {durCheck.status !== "ok" && <LogicBadge check={durCheck} compact />}
                             </div>
                             <div className="flex items-center justify-end gap-1 mt-0.5">
@@ -218,7 +231,7 @@ export default function Fitness() {
                     todaySleep.quality === 'good' ? "bg-sky-500/30 text-sky-300" :
                     todaySleep.quality === 'fair' ? "bg-amber-500/30 text-amber-300" : "bg-rose-500/30 text-rose-300"
                   )}>
-                    {todaySleep.quality}
+                    {qualityLabel[todaySleep.quality] ?? todaySleep.quality}
                   </span>
                 )}
               </div>
@@ -241,7 +254,7 @@ export default function Fitness() {
                               </span>
                               <div className="flex flex-col gap-1">
                                 <span className="inline-flex items-center gap-1 bg-destructive/20 border border-destructive/40 text-destructive text-[10px] font-black px-2 py-1 rounded-lg">
-                                  ⚠ Not Logical
+                                  ⚠ {t("fitness_not_logical")}
                                 </span>
                                 <span className="text-indigo-200 text-[10px]">—</span>
                               </div>
@@ -257,7 +270,7 @@ export default function Fitness() {
                               <span className="text-sm font-medium text-indigo-200">{t("fitness_hours")}</span>
                               {sleepCheck.status === "warning" && (
                                 <span className="inline-flex items-center gap-1 bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-black px-1.5 py-0.5 rounded-md">
-                                  ⚠ Unusual
+                                  ⚠ {t("fitness_unusual")}
                                 </span>
                               )}
                             </>
@@ -272,7 +285,7 @@ export default function Fitness() {
                           )}>
                             {sleepCheck.status === "invalid" ? "⚠" : "ℹ"} {sleepCheck.reason}
                             {sleepCheck.status === "invalid" && (
-                              <span className="text-indigo-300/70 ml-1">Please tap "Log Sleep" to fix.</span>
+                              <span className="text-indigo-300/70 ms-1">{t("fitness_fix_hint")}</span>
                             )}
                           </div>
                         )}
@@ -289,9 +302,9 @@ export default function Fitness() {
                                 return (
                                   <>
                                     <div className="flex justify-between text-[10px] font-bold text-indigo-300 uppercase tracking-wider">
-                                      <span>Deep {deepPct}%</span>
-                                      <span>Light {lightPct}%</span>
-                                      <span>REM {remPct}%</span>
+                                      <span>{t("fitness_deep")} {deepPct}%</span>
+                                      <span>{t("fitness_light")} {lightPct}%</span>
+                                      <span>{t("fitness_rem")} {remPct}%</span>
                                     </div>
                                     <div className="h-2 flex rounded-full overflow-hidden bg-indigo-950/60">
                                       <div className="h-full bg-indigo-500 transition-all" style={{ width: `${deepPct}%` }} />
@@ -341,6 +354,14 @@ function LogWorkoutDialog() {
   const { toast } = useToast();
   const logWorkout = useLogWorkout();
   const { t } = useLang();
+
+  const typeLabel: Record<string, string> = {
+    strength: t("fitness_strength"), cardio: t("fitness_cardio"), hiit: t("fitness_hiit"),
+    yoga: t("fitness_yoga"), flexibility: t("fitness_flexibility"), other: t("fitness_other"),
+  };
+  const intensityLabel: Record<string, string> = {
+    low: t("fitness_low"), moderate: t("fitness_moderate"), high: t("fitness_high"),
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -417,7 +438,7 @@ function LogWorkoutDialog() {
           caloriesBurned: Number(form.calories),
         });
         setOpen(false);
-        toast({ title: "Workout logged! 💪" });
+        toast({ title: t("fitness_workout_logged") });
         setForm({ name: "", duration: "", calories: "", type: "strength", intensity: "moderate" });
         setSuggestions([]);
       }
@@ -445,7 +466,7 @@ function LogWorkoutDialog() {
                 const recent = getWorkoutHistory().slice(0, 4).map(h => ({ ...h, isHistory: true as const }));
                 if (recent.length > 0) { setSuggestions(recent); setShowSuggestions(true); }
               }}
-              placeholder="Search or type workout name…"
+              placeholder={t("fitness_search_placeholder")}
               className="mt-1"
               autoComplete="off"
             />
@@ -453,10 +474,10 @@ function LogWorkoutDialog() {
               <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-card border border-border/60 rounded-2xl shadow-xl overflow-hidden">
                 <div className="px-3 pt-2 pb-1 flex items-center justify-between">
                   <span className="text-[9px] font-black text-muted-foreground uppercase tracking-wider">
-                    {suggestions.some(s => s.isHistory) ? "Recent & Database" : "Workout Library"}
+                    {suggestions.some(s => s.isHistory) ? t("fitness_recent_db") : t("fitness_workout_library")}
                   </span>
                   {suggestions.some(s => s.isHistory) && (
-                    <span className="text-[9px] font-black text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded-full">🕐 Your History</span>
+                    <span className="text-[9px] font-black text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded-full">🕐 {t("fitness_your_history")}</span>
                   )}
                 </div>
                 <div className="max-h-48 overflow-y-auto">
@@ -471,18 +492,18 @@ function LogWorkoutDialog() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
                           <p className="text-sm font-bold truncate">{w.name}</p>
-                          {w.isHistory && <span className="text-[9px] font-black text-amber-500 bg-amber-500/10 px-1 py-0.5 rounded shrink-0">Recent</span>}
+                          {w.isHistory && <span className="text-[9px] font-black text-amber-500 bg-amber-500/10 px-1 py-0.5 rounded shrink-0">{t("fitness_recent")}</span>}
                         </div>
                         <p className="text-[10px] text-muted-foreground capitalize">
-                          {w.type} · {w.intensity} · {w.durationMinutes}{t("unit_min")} · {w.caloriesBurned} {t("unit_kcal")}
+                          {typeLabel[w.type] ?? w.type} · {intensityLabel[w.intensity] ?? w.intensity} · {w.durationMinutes}{t("unit_min")} · {w.caloriesBurned} {t("unit_kcal")}
                         </p>
                       </div>
-                      <span className="text-[10px] font-bold text-secondary shrink-0 bg-secondary/10 px-1.5 py-0.5 rounded-full capitalize">{w.type}</span>
+                      <span className="text-[10px] font-bold text-secondary shrink-0 bg-secondary/10 px-1.5 py-0.5 rounded-full capitalize">{typeLabel[w.type] ?? w.type}</span>
                     </button>
                   ))}
                 </div>
                 <div className="px-3 py-1.5 border-t border-border/30 bg-muted/20">
-                  <p className="text-[9px] text-muted-foreground">Tap to auto-fill duration, calories & type</p>
+                  <p className="text-[9px] text-muted-foreground">{t("fitness_autofill_hint")}</p>
                 </div>
               </div>
             )}
@@ -604,7 +625,7 @@ function LogSleepDialog() {
         qc.invalidateQueries({ queryKey: getGetSleepLogsQueryKey({ limit: 7 }) });
         qc.invalidateQueries({ queryKey: getGetSleepLogsQueryKey() });
         setOpen(false);
-        toast({ title: `Sleep logged — ${preview.hours}h!` });
+        toast({ title: `${t("fitness_sleep_logged")} — ${preview.hours}${t("unit_hr")}!` });
       }
     });
   };
@@ -644,9 +665,9 @@ function LogSleepDialog() {
               {previewCheck.status === "invalid"
                 ? `⚠ ${previewCheck.reason}`
                 : <>
-                    {preview.hours}h sleep
-                    {preview.isOvernight && <span className="text-muted-foreground font-normal text-xs ml-1">(overnight ✓)</span>}
-                    {previewCheck.status === "warning" && <span className="text-xs ml-1">— {previewCheck.reason}</span>}
+                    {preview.hours}{t("unit_hr")} {t("fitness_sleep_label")}
+                    {preview.isOvernight && <span className="text-muted-foreground font-normal text-xs ms-1">({t("fitness_overnight")})</span>}
+                    {previewCheck.status === "warning" && <span className="text-xs ms-1">— {previewCheck.reason}</span>}
                   </>
               }
             </span>
@@ -669,7 +690,7 @@ function LogSleepDialog() {
             className="w-full"
             disabled={logSleep.isPending || previewCheck.status === "invalid"}
           >
-            {logSleep.isPending ? t("fitness_logging") : `${t("fitness_save_sleep")} · ${preview.hours}h`}
+            {logSleep.isPending ? t("fitness_logging") : `${t("fitness_save_sleep")} · ${preview.hours}${t("unit_hr")}`}
           </Button>
         </form>
       </DialogContent>
