@@ -142,6 +142,42 @@ export default function Home() {
   const circumference = 2 * Math.PI * 45;
   const strokeDashoffset = circumference - (balanceScore / 100) * circumference;
   const activeTitle = progress ? getActiveTitle(progress.level, getStoredTitleId()) : null;
+  const streak = progress?.stats?.currentStreak ?? 0;
+
+  const pillars = [
+    { label: t("home_meal"), score: calPct, color: "bg-primary", icon: Utensils },
+    { label: t("nav_fitness"), score: stepsPct, color: "bg-secondary", icon: Dumbbell },
+    { label: t("home_sleep_label"), score: Math.min(100, Math.round((dashboard.lastSleepHours / 8) * 100)), color: "bg-accent", icon: Moon },
+    { label: t("home_water_label"), score: waterPct, color: "bg-blue-400", icon: Droplets },
+    { label: "Habit", score: Math.min(100, Math.round((streak / 7) * 100)), color: "bg-yellow-400", icon: Flame },
+  ];
+
+  const getPillarTag = (s: number) =>
+    s >= 70 ? { label: "Pro", cls: "text-primary" } :
+    s >= 40 ? { label: "Good", cls: "text-yellow-400" } :
+    { label: "Low", cls: "text-muted-foreground" };
+
+  const gradeLevel = balanceScore >= 75 ? "Pro" : balanceScore >= 40 ? "Good" : "Low";
+  const gradeStyle: Record<string, string> = {
+    "Pro": "bg-primary/15 text-primary border-primary/30",
+    "Good": "bg-yellow-400/15 text-yellow-400 border-yellow-400/30",
+    "Low": "bg-muted/50 text-muted-foreground border-border/30",
+  };
+
+  const streakPts = streak >= 7 ? 30 : streak >= 3 ? 20 : streak >= 1 ? 10 : 0;
+  const wkPts = Math.ceil((progress?.stats?.totalWorkouts ?? 0) / 4);
+  const workoutPts = wkPts >= 5 ? 25 : wkPts >= 3 ? 15 : wkPts >= 1 ? 8 : 0;
+  const mealsToday = Math.min(3, Math.floor(dashboard.todayCalories / 500));
+  const mealPts = mealsToday >= 3 ? 20 : mealsToday >= 2 ? 12 : mealsToday >= 1 ? 5 : 0;
+  const waterPts = waterPct >= 100 ? 15 : 0;
+  const sleepPts = dashboard.lastSleepHours >= 7 ? 10 : dashboard.lastSleepHours >= 6 ? 5 : 0;
+  const factors = [
+    { label: "Streak", pts: streakPts, max: 30, icon: Flame, color: "bg-orange-400" },
+    { label: t("nav_fitness"), pts: workoutPts, max: 25, icon: Dumbbell, color: "bg-secondary" },
+    { label: t("home_meal"), pts: mealPts, max: 20, icon: Utensils, color: "bg-primary" },
+    { label: t("home_water_label"), pts: waterPts, max: 15, icon: Droplets, color: "bg-blue-400" },
+    { label: t("home_sleep_label"), pts: sleepPts, max: 10, icon: Moon, color: "bg-accent" },
+  ];
 
   return (
     <div className="min-h-full bg-background">
@@ -149,32 +185,46 @@ export default function Home() {
       <AnimatePresence>
         {notifOpen && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm" onClick={() => setNotifOpen(false)} />
-            <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }} className="fixed right-0 top-0 bottom-0 w-[88%] max-w-[380px] bg-card border-l border-border z-50 flex flex-col">
-              {/* Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-border/50 bg-card">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"
+              onClick={() => setNotifOpen(false)}
+            />
+            <motion.div
+              initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 220 }}
+              className="fixed right-0 top-0 bottom-0 w-[88%] max-w-[360px] bg-card border-l border-border/50 z-50 flex flex-col shadow-2xl"
+            >
+              {/* Drawer Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-border/40 bg-gradient-to-r from-card to-muted/20">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
                     <Bell className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <h2 className="font-black text-base leading-none">{t("home_notifications")}</h2>
-                    {unreadCount > 0 && <p className="text-[10px] text-primary font-bold mt-0.5">{unreadCount} unread</p>}
+                    <h2 className="font-black text-sm leading-tight">{t("home_notifications")}</h2>
+                    <p className="text-[10px] text-primary font-bold mt-0.5">
+                      {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
+                    </p>
                   </div>
                 </div>
-                <button onClick={() => setNotifOpen(false)} className="w-8 h-8 rounded-full bg-muted/60 flex items-center justify-center hover:bg-muted transition-colors">
+                <button
+                  onClick={() => setNotifOpen(false)}
+                  className="w-8 h-8 rounded-full bg-muted/60 flex items-center justify-center hover:bg-muted transition-colors active:scale-95"
+                >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
+              {/* Notification list */}
+              <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5">
                 {(!notifications?.length && !acceptedChallenges.length) ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                    <div className="w-16 h-16 rounded-full bg-muted/40 flex items-center justify-center mb-4">
-                      <Bell className="w-7 h-7 opacity-30" />
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="w-16 h-16 rounded-3xl bg-muted/40 flex items-center justify-center mb-4">
+                      <Bell className="w-7 h-7 opacity-20" />
                     </div>
-                    <p className="text-sm font-bold">All caught up!</p>
-                    <p className="text-xs opacity-60 mt-1">No new notifications</p>
+                    <p className="font-black text-sm">{t("home_no_notif")}</p>
+                    <p className="text-xs text-muted-foreground mt-1 opacity-70">{t("home_no_notif_sub")}</p>
                   </div>
                 ) : (
                   <>
@@ -182,25 +232,33 @@ export default function Home() {
                     {acceptedChallenges.map(c => {
                       const isRead = localChallengeRead.has(c.id);
                       return (
-                        <motion.div key={c.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                        <motion.div
+                          key={c.id}
+                          initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
                           onClick={() => {
                             const next = new Set(localChallengeRead);
                             next.add(c.id);
                             setLocalChallengeRead(next);
                             try { localStorage.setItem("bodylogic-challenge-read", JSON.stringify([...next])); } catch {}
                           }}
-                          className={cn("flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer transition-all active:scale-[0.98]",
-                            isRead ? "bg-muted/20 border-border/30 opacity-60" : "bg-destructive/10 border-destructive/25 hover:bg-destructive/15"
-                          )}>
-                          <div className="w-10 h-10 rounded-xl bg-destructive/15 flex items-center justify-center shrink-0 text-lg">
+                          className={cn(
+                            "flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer transition-all active:scale-[0.98]",
+                            isRead
+                              ? "bg-muted/15 border-border/20 opacity-50"
+                              : "bg-destructive/8 border-destructive/20 hover:bg-destructive/12"
+                          )}
+                        >
+                          <div className="w-10 h-10 rounded-2xl bg-destructive/12 border border-destructive/20 flex items-center justify-center shrink-0 text-lg">
                             {c.icon}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-2">
-                              <p className="text-sm font-black">Challenge Accepted!</p>
-                              {!isRead && <div className="w-2 h-2 rounded-full bg-destructive shrink-0" />}
+                            <div className="flex items-center justify-between gap-2 mb-0.5">
+                              <p className="text-sm font-black truncate">{t("home_challenge_accepted")}</p>
+                              {!isRead && <div className="w-2 h-2 rounded-full bg-destructive shrink-0 animate-pulse" />}
                             </div>
-                            <p className="text-xs text-muted-foreground mt-0.5 leading-snug">"{c.title}" is active — stay consistent!</p>
+                            <p className="text-xs text-muted-foreground leading-snug line-clamp-2">
+                              "{c.title}" {t("home_challenge_active")}
+                            </p>
                             <span className="inline-flex mt-1.5 items-center gap-1 bg-destructive/10 text-destructive text-[9px] font-black px-1.5 py-0.5 rounded-full border border-destructive/20">
                               <Sword className="w-2.5 h-2.5" /> BOSS CHALLENGE
                             </span>
@@ -212,31 +270,41 @@ export default function Home() {
                     {/* API notifications */}
                     {notifications?.map((n, i) => {
                       type NotifType = "water" | "meal" | "workout" | "achievement" | "sleep" | "system";
-                      const typeConfig: Record<NotifType, { icon: typeof Bell; bg: string; iconColor: string; border: string; badge: string; badgeCls: string }> = {
-                        water:       { icon: Droplets,  bg: "bg-blue-500/12",   iconColor: "text-blue-400",    border: "border-blue-400/25",   badge: "HYDRATION",   badgeCls: "bg-blue-400/10 text-blue-400 border-blue-400/20" },
-                        meal:        { icon: Utensils,  bg: "bg-primary/10",    iconColor: "text-primary",     border: "border-primary/25",    badge: "NUTRITION",   badgeCls: "bg-primary/10 text-primary border-primary/20" },
-                        workout:     { icon: Dumbbell,  bg: "bg-orange-400/12", iconColor: "text-orange-400",  border: "border-orange-400/25", badge: "FITNESS",     badgeCls: "bg-orange-400/10 text-orange-400 border-orange-400/20" },
-                        achievement: { icon: Trophy,    bg: "bg-yellow-400/12", iconColor: "text-yellow-400",  border: "border-yellow-400/25", badge: "ACHIEVEMENT", badgeCls: "bg-yellow-400/10 text-yellow-400 border-yellow-400/20" },
-                        sleep:       { icon: BedDouble, bg: "bg-accent/12",     iconColor: "text-accent",      border: "border-accent/25",     badge: "SLEEP",       badgeCls: "bg-accent/10 text-accent border-accent/20" },
-                        system:      { icon: Activity,  bg: "bg-secondary/12",  iconColor: "text-secondary",   border: "border-secondary/25",  badge: "SYSTEM",      badgeCls: "bg-secondary/10 text-secondary border-secondary/20" },
+                      const typeConfig: Record<NotifType, { icon: typeof Bell; bg: string; iconColor: string; border: string; badge: string; badgeCls: string; dot: string }> = {
+                        water:       { icon: Droplets,  bg: "bg-blue-500/8",    iconColor: "text-blue-400",   border: "border-blue-400/20",   badge: "HYDRATION",   badgeCls: "bg-blue-400/10 text-blue-400 border-blue-400/20",   dot: "bg-blue-400" },
+                        meal:        { icon: Utensils,  bg: "bg-primary/8",     iconColor: "text-primary",    border: "border-primary/20",    badge: "NUTRITION",   badgeCls: "bg-primary/10 text-primary border-primary/20",       dot: "bg-primary" },
+                        workout:     { icon: Dumbbell,  bg: "bg-orange-400/8",  iconColor: "text-orange-400", border: "border-orange-400/20", badge: "FITNESS",     badgeCls: "bg-orange-400/10 text-orange-400 border-orange-400/20", dot: "bg-orange-400" },
+                        achievement: { icon: Trophy,    bg: "bg-yellow-400/8",  iconColor: "text-yellow-400", border: "border-yellow-400/20", badge: "ACHIEVEMENT", badgeCls: "bg-yellow-400/10 text-yellow-400 border-yellow-400/20", dot: "bg-yellow-400" },
+                        sleep:       { icon: BedDouble, bg: "bg-accent/8",      iconColor: "text-accent",     border: "border-accent/20",     badge: "SLEEP",       badgeCls: "bg-accent/10 text-accent border-accent/20",           dot: "bg-accent" },
+                        system:      { icon: Activity,  bg: "bg-secondary/8",   iconColor: "text-secondary",  border: "border-secondary/20",  badge: "SYSTEM",      badgeCls: "bg-secondary/10 text-secondary border-secondary/20",   dot: "bg-secondary" },
                       };
                       const cfg = typeConfig[n.type as NotifType] ?? typeConfig.system;
                       const Icon = cfg.icon;
                       return (
-                        <motion.div key={n.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                        <motion.div
+                          key={n.id}
+                          initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.04 }}
                           onClick={() => { if (!n.read) { markRead.mutate({ id: n.id }); qc.invalidateQueries({ queryKey: getGetNotificationsQueryKey() }); } }}
-                          className={cn("flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer transition-all active:scale-[0.98]",
-                            n.read ? "bg-muted/20 border-border/30 opacity-60" : cn("border hover:opacity-90", cfg.bg, cfg.border)
+                          className={cn(
+                            "flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer transition-all active:scale-[0.98]",
+                            n.read
+                              ? "bg-muted/15 border-border/20 opacity-50"
+                              : cn("hover:opacity-90", cfg.bg, cfg.border)
+                          )}
+                        >
+                          <div className={cn(
+                            "w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border",
+                            n.read ? "bg-muted/30 border-border/20" : cn(cfg.bg, cfg.border)
                           )}>
-                          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", n.read ? "bg-muted/40" : cfg.bg)}>
-                            <Icon className={cn("w-5 h-5", n.read ? "text-muted-foreground" : cfg.iconColor)} />
+                            <Icon className={cn("w-4.5 h-4.5", n.read ? "text-muted-foreground/50" : cfg.iconColor)} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-2">
-                              <p className={cn("text-sm font-black leading-tight", n.read && "text-muted-foreground")}>{n.title}</p>
-                              {!n.read && <div className={cn("w-2 h-2 rounded-full shrink-0", cfg.iconColor.replace("text-", "bg-"))} />}
+                            <div className="flex items-center justify-between gap-2 mb-0.5">
+                              <p className={cn("text-sm font-black leading-tight truncate", n.read && "text-muted-foreground")}>{n.title}</p>
+                              {!n.read && <div className={cn("w-2 h-2 rounded-full shrink-0 animate-pulse", cfg.dot)} />}
                             </div>
-                            <p className="text-xs text-muted-foreground mt-0.5 leading-snug line-clamp-2">{n.message}</p>
+                            <p className="text-xs text-muted-foreground leading-snug line-clamp-2">{n.message}</p>
                             <span className={cn("inline-flex mt-1.5 items-center text-[9px] font-black px-1.5 py-0.5 rounded-full border", cfg.badgeCls)}>
                               {cfg.badge}
                             </span>
@@ -248,19 +316,22 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Footer */}
+              {/* Mark all read footer */}
               {(notifications?.some(n => !n.read) || acceptedChallenges.some(c => !localChallengeRead.has(c.id))) && (
-                <div className="p-4 border-t border-border/50">
-                  <button onClick={() => {
-                    notifications?.filter(n => !n.read).forEach(n => { markRead.mutate({ id: n.id }); });
-                    qc.invalidateQueries({ queryKey: getGetNotificationsQueryKey() });
-                    const allIds = acceptedChallenges.map(c => c.id);
-                    const next = new Set(allIds);
-                    setLocalChallengeRead(next);
-                    try { localStorage.setItem("bodylogic-challenge-read", JSON.stringify(allIds)); } catch {}
-                  }} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-muted/50 hover:bg-muted text-xs font-bold text-muted-foreground transition-colors">
+                <div className="p-4 border-t border-border/40 bg-card">
+                  <button
+                    onClick={() => {
+                      notifications?.filter(n => !n.read).forEach(n => { markRead.mutate({ id: n.id }); });
+                      qc.invalidateQueries({ queryKey: getGetNotificationsQueryKey() });
+                      const allIds = acceptedChallenges.map(c => c.id);
+                      const next = new Set(allIds);
+                      setLocalChallengeRead(next);
+                      try { localStorage.setItem("bodylogic-challenge-read", JSON.stringify(allIds)); } catch {}
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-primary/10 border border-primary/20 hover:bg-primary/15 text-xs font-bold text-primary transition-colors active:scale-[0.98]"
+                  >
                     <CheckCheck className="w-3.5 h-3.5" />
-                    Mark all as read
+                    {t("home_mark_all_read")}
                   </button>
                 </div>
               )}
@@ -364,124 +435,87 @@ export default function Home() {
         </div>
 
         {/* Life Balance + Momentum Row */}
-        {(() => {
-          const streak = progress?.stats?.currentStreak ?? 0;
-          const pillars = [
-            { label: "Food", score: calPct, color: "bg-primary", icon: Utensils },
-            { label: "Fitness", score: stepsPct, color: "bg-secondary", icon: Dumbbell },
-            { label: "Sleep", score: Math.min(100, Math.round((dashboard.lastSleepHours / 8) * 100)), color: "bg-accent", icon: Moon },
-            { label: "Habit", score: Math.min(100, Math.round((streak / 7) * 100)), color: "bg-yellow-400", icon: Flame },
-          ];
-          const getPillarTag = (s: number) =>
-            s >= 70 ? { label: "Pro", cls: "text-primary" } :
-            s >= 40 ? { label: "Good", cls: "text-yellow-400" } :
-            { label: "Low", cls: "text-muted-foreground" };
-
-          const gradeLevel = balanceScore >= 75 ? "Pro" : balanceScore >= 40 ? "Good" : "Low";
-          const gradeStyle: Record<string, string> = {
-            "Pro": "bg-primary/15 text-primary border-primary/30",
-            "Good": "bg-yellow-400/15 text-yellow-400 border-yellow-400/30",
-            "Low": "bg-muted/50 text-muted-foreground border-border/30",
-          };
-
-          const streakPts = streak >= 7 ? 30 : streak >= 3 ? 20 : streak >= 1 ? 10 : 0;
-          const wkPts = Math.ceil((progress?.stats?.totalWorkouts ?? 0) / 4);
-          const workoutPts = wkPts >= 5 ? 25 : wkPts >= 3 ? 15 : wkPts >= 1 ? 8 : 0;
-          const mealsToday = Math.min(3, Math.floor(dashboard.todayCalories / 500));
-          const mealPts = mealsToday >= 3 ? 20 : mealsToday >= 2 ? 12 : mealsToday >= 1 ? 5 : 0;
-          const waterPts = waterPct >= 100 ? 15 : 0;
-          const sleepPts = dashboard.lastSleepHours >= 7 ? 10 : dashboard.lastSleepHours >= 6 ? 5 : 0;
-          const factors = [
-            { label: "Streak", pts: streakPts, max: 30, icon: Flame, color: "bg-orange-400" },
-            { label: "Workouts", pts: workoutPts, max: 25, icon: Dumbbell, color: "bg-secondary" },
-            { label: "Meals", pts: mealPts, max: 20, icon: Utensils, color: "bg-primary" },
-            { label: "Water", pts: waterPts, max: 15, icon: Droplets, color: "bg-blue-400" },
-            { label: "Sleep", pts: sleepPts, max: 10, icon: Moon, color: "bg-accent" },
-          ];
-          return (
-            <div className="grid grid-cols-2 gap-3">
-              {/* Life Balance */}
-              <div className="bg-card rounded-2xl p-4 border border-border/50 hover-elevate">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-black text-foreground uppercase tracking-wider">{t("home_life_balance")}</span>
-                  <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full border", gradeStyle[gradeLevel])}>
-                    {gradeLevel}
-                  </span>
-                </div>
-                <div className="flex items-center justify-center py-1">
-                  <svg width="76" height="76" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="hsl(var(--muted))" strokeWidth="9" />
-                    <circle cx="50" cy="50" r="45" fill="none"
-                      stroke={gradeLevel === "Pro" ? "hsl(var(--primary))" : gradeLevel === "Good" ? "hsl(var(--yellow-400, 250 204 21))" : "hsl(var(--muted-foreground))"}
-                      strokeWidth="9" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} transform="rotate(-90 50 50)" className="transition-all duration-1000" />
-                    <text x="50" y="47" textAnchor="middle" style={{ fill: "hsl(var(--foreground))", fontSize: "20px", fontWeight: "900" }}>{balanceScore}</text>
-                    <text x="50" y="62" textAnchor="middle" style={{ fill: "hsl(var(--muted-foreground))", fontSize: "9px", fontWeight: "700" }}>/ 100</text>
-                  </svg>
-                </div>
-                <div className="space-y-2 mt-2">
-                  {pillars.map(p => {
-                    const tag = getPillarTag(p.score);
-                    const PIcon = p.icon;
-                    return (
-                      <div key={p.label} className="flex items-center gap-2">
-                        <PIcon className="w-3 h-3 text-muted-foreground shrink-0" />
-                        <span className="text-[10px] text-muted-foreground w-8 shrink-0">{p.label}</span>
-                        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                          <div className={cn("h-full rounded-full transition-all", p.color)} style={{ width: `${p.score}%` }} />
-                        </div>
-                        <span className={cn("text-[9px] font-black w-6 text-right shrink-0", tag.cls)}>{tag.label}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Momentum */}
-              <div className="bg-card rounded-2xl p-4 border border-border/50 hover-elevate">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-black text-foreground uppercase tracking-wider">{t("home_momentum")}</span>
-                  <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full border",
-                    momentumData.label === "Pro" ? "bg-primary/15 text-primary border-primary/30" :
-                    momentumData.label === "Good" ? "bg-yellow-400/15 text-yellow-400 border-yellow-400/30" :
-                    "bg-muted/50 text-muted-foreground border-border/30"
-                  )}>
-                    {momentumData.label}
-                  </span>
-                </div>
-                <div className="flex items-center justify-center py-1">
-                  <svg width="76" height="76" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="hsl(var(--muted))" strokeWidth="9" />
-                    <circle cx="50" cy="50" r="45" fill="none"
-                      stroke={momentumData.label === "Pro" ? "hsl(var(--primary))" : momentumData.label === "Good" ? "#eab308" : "hsl(var(--muted-foreground))"}
-                      strokeWidth="9" strokeLinecap="round"
-                      strokeDasharray={`${(momentumData.score / 100) * 2 * Math.PI * 45} ${2 * Math.PI * 45}`}
-                      strokeDashoffset={2 * Math.PI * 45 * 0.25}
-                      transform="rotate(-90 50 50)" className="transition-all duration-1000" />
-                    <text x="50" y="47" textAnchor="middle" style={{ fill: "hsl(var(--foreground))", fontSize: "20px", fontWeight: "900" }}>{momentumData.score}</text>
-                    <text x="50" y="62" textAnchor="middle" style={{ fill: "hsl(var(--muted-foreground))", fontSize: "9px", fontWeight: "700" }}>/ 100</text>
-                  </svg>
-                </div>
-                <div className="space-y-2 mt-2">
-                  {factors.map(f => {
-                    const pct = Math.round((f.pts / f.max) * 100);
-                    const ftag = pct >= 70 ? { label: "Pro", cls: "text-primary" } : pct >= 40 ? { label: "Good", cls: "text-yellow-400" } : { label: "Low", cls: "text-muted-foreground" };
-                    const FIcon = f.icon;
-                    return (
-                      <div key={f.label} className="flex items-center gap-2">
-                        <FIcon className="w-3 h-3 text-muted-foreground shrink-0" />
-                        <span className="text-[10px] text-muted-foreground w-10 shrink-0">{f.label}</span>
-                        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                          <div className={cn("h-full rounded-full transition-all", f.color)} style={{ width: `${pct}%` }} />
-                        </div>
-                        <span className={cn("text-[9px] font-black w-6 text-right shrink-0", ftag.cls)}>{ftag.label}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+        <div className="grid grid-cols-2 gap-3">
+          {/* Life Balance */}
+          <div className="bg-card rounded-2xl p-4 border border-border/50 hover-elevate">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-black text-foreground uppercase tracking-wider">{t("home_life_balance")}</span>
+              <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full border", gradeStyle[gradeLevel])}>
+                {gradeLevel}
+              </span>
             </div>
-          );
-        })()}
+            <div className="flex items-center justify-center py-1">
+              <svg width="76" height="76" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="hsl(var(--muted))" strokeWidth="9" />
+                <circle cx="50" cy="50" r="45" fill="none"
+                  stroke={gradeLevel === "Pro" ? "hsl(var(--primary))" : gradeLevel === "Good" ? "#eab308" : "hsl(var(--muted-foreground))"}
+                  strokeWidth="9" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} transform="rotate(-90 50 50)" className="transition-all duration-1000" />
+                <text x="50" y="47" textAnchor="middle" style={{ fill: "hsl(var(--foreground))", fontSize: "20px", fontWeight: "900" }}>{balanceScore}</text>
+                <text x="50" y="62" textAnchor="middle" style={{ fill: "hsl(var(--muted-foreground))", fontSize: "9px", fontWeight: "700" }}>/ 100</text>
+              </svg>
+            </div>
+            <div className="space-y-1.5 mt-2">
+              {pillars.map(p => {
+                const tag = getPillarTag(p.score);
+                const PIcon = p.icon;
+                return (
+                  <div key={p.label} className="flex items-center gap-1.5">
+                    <PIcon className="w-3 h-3 text-muted-foreground shrink-0" />
+                    <span className="text-[9px] text-muted-foreground w-8 shrink-0 truncate">{p.label}</span>
+                    <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div className={cn("h-full rounded-full transition-all", p.color)} style={{ width: `${p.score}%` }} />
+                    </div>
+                    <span className={cn("text-[9px] font-black w-6 text-right shrink-0", tag.cls)}>{tag.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Momentum */}
+          <div className="bg-card rounded-2xl p-4 border border-border/50 hover-elevate">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-black text-foreground uppercase tracking-wider">{t("home_momentum")}</span>
+              <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full border",
+                momentumData.label === "Pro" ? "bg-primary/15 text-primary border-primary/30" :
+                momentumData.label === "Good" ? "bg-yellow-400/15 text-yellow-400 border-yellow-400/30" :
+                "bg-muted/50 text-muted-foreground border-border/30"
+              )}>
+                {momentumData.label}
+              </span>
+            </div>
+            <div className="flex items-center justify-center py-1">
+              <svg width="76" height="76" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="hsl(var(--muted))" strokeWidth="9" />
+                <circle cx="50" cy="50" r="45" fill="none"
+                  stroke={momentumData.label === "Pro" ? "hsl(var(--primary))" : momentumData.label === "Good" ? "#eab308" : "hsl(var(--muted-foreground))"}
+                  strokeWidth="9" strokeLinecap="round"
+                  strokeDasharray={`${(momentumData.score / 100) * 2 * Math.PI * 45} ${2 * Math.PI * 45}`}
+                  strokeDashoffset={2 * Math.PI * 45 * 0.25}
+                  transform="rotate(-90 50 50)" className="transition-all duration-1000" />
+                <text x="50" y="47" textAnchor="middle" style={{ fill: "hsl(var(--foreground))", fontSize: "20px", fontWeight: "900" }}>{momentumData.score}</text>
+                <text x="50" y="62" textAnchor="middle" style={{ fill: "hsl(var(--muted-foreground))", fontSize: "9px", fontWeight: "700" }}>/ 100</text>
+              </svg>
+            </div>
+            <div className="space-y-1.5 mt-2">
+              {factors.map(f => {
+                const pct = Math.round((f.pts / f.max) * 100);
+                const ftag = pct >= 70 ? { label: "Pro", cls: "text-primary" } : pct >= 40 ? { label: "Good", cls: "text-yellow-400" } : { label: "Low", cls: "text-muted-foreground" };
+                const FIcon = f.icon;
+                return (
+                  <div key={f.label} className="flex items-center gap-1.5">
+                    <FIcon className="w-3 h-3 text-muted-foreground shrink-0" />
+                    <span className="text-[9px] text-muted-foreground w-9 shrink-0 truncate">{f.label}</span>
+                    <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div className={cn("h-full rounded-full transition-all", f.color)} style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className={cn("text-[9px] font-black w-6 text-right shrink-0", ftag.cls)}>{ftag.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
 
         {/* XP + Coins Banner */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-yellow-500/15 via-orange-500/10 to-yellow-500/15 border border-yellow-500/20 p-4">
@@ -499,7 +533,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center gap-1">
                   <Coins className="w-3 h-3 text-yellow-400" />
-                  <span className="text-xs font-bold text-yellow-400">{progress?.coins ?? dashboard.coins} coins</span>
+                  <span className="text-xs font-bold text-yellow-400">{progress?.coins ?? dashboard.coins} {t("home_coins")}</span>
                 </div>
               </div>
               <div className="h-1.5 bg-yellow-500/20 rounded-full mt-2 overflow-hidden">
@@ -546,19 +580,19 @@ export default function Home() {
         {/* Meal IQ + AI Tip Row */}
         <div className="grid grid-cols-2 gap-3">
           <MealIqQuiz score={dashboard.mealIqScore}>
-          <button className="bg-card rounded-2xl p-4 border border-border/50 hover-elevate text-left press-scale">
-            <div className="flex items-center gap-1.5 mb-2">
-              <Brain className="w-4 h-4 text-primary" />
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("home_meal_iq")}</span>
-            </div>
-            <p className={cn("text-4xl font-black leading-none", getMealIQColor(dashboard.mealIqScore))}>
-              {dashboard.mealIqScore ?? "—"}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">/ 28 max score</p>
-            <div className={cn("mt-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold", getMealIQColor(dashboard.mealIqScore) === "text-primary" ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground")}>
-              Grade: {getMealIQGrade(dashboard.mealIqScore)}
-            </div>
-          </button>
+            <button className="bg-card rounded-2xl p-4 border border-border/50 hover-elevate text-left press-scale w-full">
+              <div className="flex items-center gap-1.5 mb-2">
+                <Brain className="w-4 h-4 text-primary" />
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("home_meal_iq")}</span>
+              </div>
+              <p className={cn("text-4xl font-black leading-none", getMealIQColor(dashboard.mealIqScore))}>
+                {dashboard.mealIqScore ?? "—"}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">/ 28 max score</p>
+              <div className={cn("mt-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold", getMealIQColor(dashboard.mealIqScore) === "text-primary" ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground")}>
+                Grade: {getMealIQGrade(dashboard.mealIqScore)}
+              </div>
+            </button>
           </MealIqQuiz>
 
           <div className={cn("rounded-2xl p-4 border bg-gradient-to-br hover-elevate", tipColors[tip?.category ?? "general"] ?? tipColors.general)}>
@@ -629,111 +663,117 @@ export default function Home() {
           </div>
         )}
 
-        {/* 30-Day Streak Calendar */}
+        {/* Activity Streak — improved UI */}
         {progress && (
-          <div className="bg-card rounded-2xl p-4 border border-border/50">
+          <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-orange-400/15 flex items-center justify-center">
-                  <Flame className="w-4 h-4 text-orange-400" />
+            <div className="px-4 pt-4 pb-3 flex items-center justify-between bg-gradient-to-r from-orange-500/5 to-transparent border-b border-border/30">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-orange-400/15 border border-orange-400/20 flex items-center justify-center">
+                  <Flame className="w-4.5 h-4.5 text-orange-400" />
                 </div>
                 <div>
-                  <span className="text-sm font-black">Activity Streak</span>
-                  <p className="text-[10px] text-muted-foreground">Last 30 days</p>
+                  <p className="font-black text-sm leading-tight">{t("home_streak")}</p>
+                  <p className="text-[10px] text-muted-foreground">{t("home_streak_sub")}</p>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-1">
-                <div className="flex items-center gap-1.5 bg-orange-400/10 border border-orange-400/25 px-3 py-1.5 rounded-full">
+              <div className="flex flex-col items-end gap-0.5">
+                <div className="flex items-center gap-1.5 bg-orange-400/12 border border-orange-400/20 px-3 py-1.5 rounded-full">
                   <Flame className="w-3.5 h-3.5 text-orange-400" />
                   <span className="text-sm font-black text-orange-400">{progress.stats?.currentStreak ?? 0}</span>
-                  <span className="text-xs text-orange-400/70 font-semibold">day{(progress.stats?.currentStreak ?? 0) !== 1 ? "s" : ""}</span>
+                  <span className="text-xs text-orange-400/70 font-semibold">{t("home_streak_days")}</span>
                 </div>
                 {(progress.stats?.longestStreak ?? 0) > 0 && (
-                  <span className="text-[9px] text-muted-foreground font-semibold">Best: {progress.stats?.longestStreak ?? 0}d</span>
+                  <span className="text-[9px] text-muted-foreground font-semibold">
+                    {t("home_streak_best")}: {progress.stats?.longestStreak ?? 0}d
+                  </span>
                 )}
               </div>
             </div>
-            {(() => {
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              const activityDates = new Set(
-                (dashboard.recentActivity ?? []).map((a: any) => {
-                  const d = new Date(a.date ?? a.createdAt ?? "");
-                  d.setHours(0, 0, 0, 0);
-                  return d.getTime();
-                })
-              );
-              const streak = progress.stats?.currentStreak ?? 0;
-              const days = Array.from({ length: 35 }, (_, i) => {
-                const d = new Date(today);
-                d.setDate(today.getDate() - (34 - i));
-                const daysAgo = 34 - i;
-                const inStreak = daysAgo < streak;
-                const hasActivity = activityDates.has(d.getTime()) || inStreak;
-                const isToday = daysAgo === 0;
-                const isFuture = daysAgo < 0;
-                return { date: d, hasActivity, inStreak, isToday, isFuture };
-              });
-              const weeks: typeof days[] = [];
-              for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
-              const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-              const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-              return (
-                <div>
-                  <div className="grid grid-cols-7 gap-1.5 mb-2">
-                    {dayLabels.map((d, i) => (
-                      <div key={i} className="text-center text-[9px] font-bold text-muted-foreground/60 uppercase tracking-wide">{d[0]}</div>
-                    ))}
-                  </div>
-                  <div className="space-y-1.5">
-                    {weeks.map((week, wi) => (
-                      <div key={wi} className="grid grid-cols-7 gap-1.5">
-                        {week.map((day, di) => (
-                          <div
-                            key={di}
-                            className={cn(
-                              "relative flex flex-col items-center justify-center rounded-xl transition-all",
-                              "h-9",
-                              day.isToday && "ring-2 ring-orange-400 ring-offset-1 ring-offset-card",
-                              day.hasActivity && !day.isFuture
-                                ? "bg-gradient-to-br from-orange-400 to-primary shadow-sm"
-                                : "bg-muted/30 border border-border/20"
-                            )}
-                          >
-                            <span className={cn(
-                              "text-[9px] font-black leading-none",
-                              day.hasActivity && !day.isFuture ? "text-white" : "text-muted-foreground/60"
-                            )}>
-                              {day.date.getDate()}
-                            </span>
-                            {day.isToday && (
-                              <div className={cn("w-1 h-1 rounded-full mt-0.5", day.hasActivity ? "bg-white/80" : "bg-orange-400")} />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                  {/* Month label */}
-                  <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border/30">
-                    <span className="text-[10px] text-muted-foreground font-semibold">
-                      {monthNames[new Date(today.getFullYear(), today.getMonth() - 1).getMonth()]} — {monthNames[today.getMonth()]}
-                    </span>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded-md bg-gradient-to-br from-orange-400 to-primary shadow-sm" />
-                        <span className="text-[9px] text-muted-foreground font-semibold">Active</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded-md bg-muted/30 border border-border/20" />
-                        <span className="text-[9px] text-muted-foreground font-semibold">Rest</span>
+
+            {/* Calendar grid */}
+            <div className="px-4 py-3">
+              {(() => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const activityDates = new Set(
+                  (dashboard.recentActivity ?? []).map((a: any) => {
+                    const d = new Date(a.date ?? a.createdAt ?? "");
+                    d.setHours(0, 0, 0, 0);
+                    return d.getTime();
+                  })
+                );
+                const currentStreak = progress.stats?.currentStreak ?? 0;
+                const days = Array.from({ length: 35 }, (_, i) => {
+                  const d = new Date(today);
+                  d.setDate(today.getDate() - (34 - i));
+                  const daysAgo = 34 - i;
+                  const inStreak = daysAgo < currentStreak;
+                  const hasActivity = activityDates.has(d.getTime()) || inStreak;
+                  const isToday = daysAgo === 0;
+                  const isFuture = daysAgo < 0;
+                  return { date: d, hasActivity, inStreak, isToday, isFuture };
+                });
+                const weeks: typeof days[] = [];
+                for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
+                const dayLabels = ["S", "M", "T", "W", "T", "F", "S"];
+                const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                return (
+                  <div>
+                    <div className="grid grid-cols-7 gap-1 mb-1.5">
+                      {dayLabels.map((d, i) => (
+                        <div key={i} className="text-center text-[9px] font-bold text-muted-foreground/50 uppercase">{d}</div>
+                      ))}
+                    </div>
+                    <div className="space-y-1">
+                      {weeks.map((week, wi) => (
+                        <div key={wi} className="grid grid-cols-7 gap-1">
+                          {week.map((day, di) => (
+                            <div
+                              key={di}
+                              className={cn(
+                                "relative flex flex-col items-center justify-center rounded-lg transition-all h-8",
+                                day.isToday && "ring-2 ring-orange-400 ring-offset-1 ring-offset-card",
+                                day.hasActivity && !day.isFuture
+                                  ? "bg-gradient-to-br from-orange-400 to-orange-500 shadow-sm"
+                                  : "bg-muted/25 border border-border/15"
+                              )}
+                            >
+                              <span className={cn(
+                                "text-[9px] font-black leading-none",
+                                day.hasActivity && !day.isFuture ? "text-white" : "text-muted-foreground/50"
+                              )}>
+                                {day.date.getDate()}
+                              </span>
+                              {day.isToday && (
+                                <div className={cn("w-1 h-1 rounded-full mt-0.5", day.hasActivity ? "bg-white/80" : "bg-orange-400")} />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Legend */}
+                    <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border/20">
+                      <span className="text-[10px] text-muted-foreground font-semibold">
+                        {monthNames[new Date(today.getFullYear(), today.getMonth() - 1).getMonth()]} — {monthNames[today.getMonth()]}
+                      </span>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-3 h-3 rounded-md bg-gradient-to-br from-orange-400 to-orange-500 shadow-sm" />
+                          <span className="text-[9px] text-muted-foreground font-semibold">{t("home_streak_active")}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-3 h-3 rounded-md bg-muted/25 border border-border/15" />
+                          <span className="text-[9px] text-muted-foreground font-semibold">{t("home_streak_rest")}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })()}
+                );
+              })()}
+            </div>
           </div>
         )}
 
@@ -794,25 +834,27 @@ export default function Home() {
   );
 }
 
-function Minus({ className }: { className?: string }) {
-  return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><line x1="5" y1="12" x2="19" y2="12" strokeWidth="2" strokeLinecap="round"/></svg>;
-}
-
 function HomeSkeleton() {
   return (
     <div className="p-5 space-y-5 animate-pulse">
       <div className="flex items-center justify-between pt-2">
-        <div className="h-8 w-32 bg-muted rounded-lg shimmer" />
-        <div className="h-9 w-9 bg-muted rounded-xl shimmer" />
+        <div className="h-8 w-32 bg-muted rounded-xl" />
+        <div className="flex gap-2">
+          <div className="h-10 w-10 bg-muted rounded-xl" />
+          <div className="h-10 w-10 bg-muted rounded-xl" />
+        </div>
       </div>
-      <div className="h-10 w-56 bg-muted rounded-lg shimmer" />
+      <div className="space-y-2">
+        <div className="h-8 w-48 bg-muted rounded-xl" />
+        <div className="h-3 w-64 bg-muted rounded-xl" />
+      </div>
       <div className="grid grid-cols-4 gap-2">
-        {[1,2,3,4].map(i => <div key={i} className="h-24 bg-muted rounded-2xl shimmer" />)}
+        {[...Array(4)].map((_, i) => <div key={i} className="h-20 bg-muted rounded-2xl" />)}
       </div>
       <div className="grid grid-cols-2 gap-3">
-        {[1,2].map(i => <div key={i} className="h-44 bg-muted rounded-2xl shimmer" />)}
+        <div className="h-48 bg-muted rounded-2xl" />
+        <div className="h-48 bg-muted rounded-2xl" />
       </div>
-      <div className="h-20 bg-muted rounded-2xl shimmer" />
     </div>
   );
 }

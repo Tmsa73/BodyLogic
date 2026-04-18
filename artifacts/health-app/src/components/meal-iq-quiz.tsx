@@ -1,18 +1,25 @@
 import { useMemo, useState, useEffect } from "react";
-import { Brain, CheckCircle2, RotateCcw, Sparkles, XCircle, Coins, Clock, Lock } from "lucide-react";
+import { Brain, CheckCircle2, RotateCcw, Sparkles, XCircle, Coins, Clock, Lock, Zap } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { playGamificationSound } from "@/lib/sounds";
+import { useQueryClient } from "@tanstack/react-query";
+import { getGetProgressQueryKey, getGetDashboardQueryKey } from "@workspace/api-client-react";
+import { useLang } from "@/contexts/language-context";
 
-const COINS_KEY = "bodylogic-coins";
 const QUIZ_COOLDOWN_KEY = "bodylogic-quiz-cooldown";
-const COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
+const COOLDOWN_MS = 60 * 60 * 1000;
 
-function addCoins(amount: number) {
+async function awardGameReward(xp: number, source: string): Promise<void> {
   try {
-    const current = parseInt(localStorage.getItem(COINS_KEY) ?? "0", 10);
-    localStorage.setItem(COINS_KEY, String(current + amount));
+    const base = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
+    await fetch(`${base}/api/progress/award-game`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ xp, source }),
+      credentials: "include",
+    });
   } catch {}
 }
 
@@ -87,14 +94,19 @@ function pickQuestions() {
   return [...BASE_QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 5);
 }
 
+const OPTION_LABELS = ["A", "B", "C", "D"];
+
 export function MealIqQuiz({ children, score }: { children: React.ReactNode; score?: number | null }) {
   const [open, setOpen] = useState(false);
   const [questions, setQuestions] = useState<Question[]>(() => pickQuestions());
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [coinsEarned, setCoinsEarned] = useState(0);
+  const [xpEarned, setXpEarned] = useState(0);
   const [coinsAwarded, setCoinsAwarded] = useState(false);
   const [cooldownRemaining, setCooldownRemaining] = useState(getCooldownRemaining);
+  const qc = useQueryClient();
+  const { t } = useLang();
 
   const current = questions[index]!;
   const answered = answers[index] !== undefined;
@@ -125,11 +137,12 @@ export function MealIqQuiz({ children, score }: { children: React.ReactNode; sco
     setIndex(0);
     setAnswers([]);
     setCoinsEarned(0);
+    setXpEarned(0);
     setCoinsAwarded(false);
     setCooldownRemaining(getCooldownRemaining());
   };
 
-  const choose = (answer: number) => {
+  const choose = async (answer: number) => {
     if (answered) return;
     const next = [...answers];
     next[index] = answer;
@@ -139,127 +152,178 @@ export function MealIqQuiz({ children, score }: { children: React.ReactNode; sco
     const newCorrect = next.reduce((sum, a, i) => sum + (a === questions[i]?.correct ? 1 : 0), 0);
     if (next.length === questions.length && !coinsAwarded) {
       if (!onCooldown) {
-        const earned = newCorrect >= questions.length ? 15 : newCorrect >= questions.length - 1 ? 10 : newCorrect >= 3 ? 5 : 2;
-        addCoins(earned);
-        setCoinsEarned(earned);
+        const correctRatio = newCorrect / questions.length;
+        const xp = correctRatio >= 1 ? 50 : correctRatio >= 0.8 ? 35 : correctRatio >= 0.6 ? 20 : 10;
+        const coins = correctRatio >= 1 ? 15 : correctRatio >= 0.8 ? 10 : correctRatio >= 0.6 ? 5 : 2;
+        setCoinsEarned(coins);
+        setXpEarned(xp);
         setLastPlayed();
         setCooldownRemaining(COOLDOWN_MS);
         playGamificationSound("coins");
+        await awardGameReward(xp, "meal_iq_quiz");
+        qc.invalidateQueries({ queryKey: getGetProgressQueryKey() });
+        qc.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
       }
       setCoinsAwarded(true);
     }
   };
 
+  const scoreColor =
+    correctCount === questions.length ? "text-primary" :
+    correctCount >= questions.length - 1 ? "text-yellow-400" :
+    correctCount >= 3 ? "text-orange-400" : "text-muted-foreground";
+
   return (
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v) { reset(); setCooldownRemaining(getCooldownRemaining()); } }}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-[95vw] rounded-3xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Brain className="w-5 h-5 text-primary" />
-            Meal IQ Challenge
-            {onCooldown && !complete && (
-              <span className="ml-auto flex items-center gap-1 text-[10px] font-black text-amber-500 bg-amber-500/10 border border-amber-500/25 px-2 py-1 rounded-full">
-                <Clock className="w-3 h-3" /> Play for fun
+      <DialogContent className="max-w-[95vw] rounded-3xl p-0 overflow-hidden border-0 shadow-2xl">
+        {/* Gradient header */}
+        <div className="bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/10 px-5 pt-5 pb-4 border-b border-border/30">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center">
+                <Brain className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="font-black text-base leading-tight">{t("mealiq_title")}</p>
+                {onCooldown && !complete && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-500 mt-0.5">
+                    <Clock className="w-2.5 h-2.5" /> {t("home_play_for_fun")}
+                  </span>
+                )}
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Progress bar */}
+          <div className="mt-3 space-y-1.5">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="font-black text-primary uppercase tracking-wider">
+                {t("mealiq_card")} {Math.min(index + 1, questions.length)} {t("mealiq_of")} {questions.length}
               </span>
-            )}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4 pt-1">
-          <div className="rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20 p-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-primary uppercase tracking-wider">Card {Math.min(index + 1, questions.length)} of {questions.length}</span>
-              <span className="text-xs font-bold text-muted-foreground">{correctCount}/{questions.length} correct</span>
+              <span className="font-bold text-muted-foreground">{correctCount}/{questions.length} {t("mealiq_correct")}</span>
             </div>
-            <div className="h-1.5 bg-muted rounded-full overflow-hidden mt-2">
-              <div className="h-full bg-gradient-to-r from-primary to-secondary transition-all" style={{ width: `${(answers.length / questions.length) * 100}%` }} />
+            <div className="h-2 bg-muted/60 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-500 rounded-full"
+                style={{ width: `${(answers.length / questions.length) * 100}%` }}
+              />
             </div>
           </div>
+        </div>
 
+        <div className="px-5 py-4 space-y-4">
           {!complete ? (
             <>
-              <div>
-                <p className="text-lg font-black leading-tight">{current.question}</p>
-                <p className="text-xs text-muted-foreground mt-1">{recommendation}</p>
+              <div className="space-y-1">
+                <p className="text-base font-black leading-snug">{current.question}</p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">{recommendation}</p>
               </div>
+
               <div className="space-y-2">
                 {current.options.map((option, i) => {
                   const isCorrect = i === current.correct;
                   const isSelected = selected === i;
+                  const label = OPTION_LABELS[i];
                   return (
                     <button
                       key={option}
                       onClick={() => choose(i)}
                       className={cn(
-                        "w-full p-3 rounded-2xl border text-left text-sm font-bold transition-all",
-                        !answered && "bg-card border-border/50 hover:border-primary/40",
-                        answered && isCorrect && "bg-primary/10 border-primary/40 text-primary",
+                        "w-full p-3 rounded-2xl border text-left text-sm font-semibold transition-all flex items-center gap-3 active:scale-[0.98]",
+                        !answered && "bg-card border-border/50 hover:border-primary/40 hover:bg-primary/5",
+                        answered && isCorrect && "bg-primary/10 border-primary/50 text-primary",
                         answered && isSelected && !isCorrect && "bg-destructive/10 border-destructive/40 text-destructive",
-                        answered && !isSelected && !isCorrect && "bg-muted/30 border-border/30 text-muted-foreground"
+                        answered && !isSelected && !isCorrect && "bg-muted/30 border-border/20 text-muted-foreground opacity-60"
                       )}
                     >
-                      <span className="flex items-center gap-2">
-                        {answered && isCorrect && <CheckCircle2 className="w-4 h-4" />}
-                        {answered && isSelected && !isCorrect && <XCircle className="w-4 h-4" />}
-                        {option}
+                      <span className={cn(
+                        "w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black shrink-0 transition-all",
+                        !answered && "bg-muted/60 text-muted-foreground",
+                        answered && isCorrect && "bg-primary text-primary-foreground",
+                        answered && isSelected && !isCorrect && "bg-destructive text-destructive-foreground",
+                        answered && !isSelected && !isCorrect && "bg-muted/40 text-muted-foreground/50"
+                      )}>
+                        {answered && isCorrect ? <CheckCircle2 className="w-4 h-4" /> :
+                         answered && isSelected && !isCorrect ? <XCircle className="w-4 h-4" /> :
+                         label}
                       </span>
+                      <span className="flex-1 leading-snug">{option}</span>
                     </button>
                   );
                 })}
               </div>
+
               {answered && (
-                <div className="rounded-2xl bg-muted/40 border border-border/40 p-3">
-                  <p className="text-xs text-muted-foreground leading-relaxed">{current.explanation}</p>
-                  <Button className="w-full mt-3 rounded-xl" onClick={() => setIndex(i => i + 1)}>
-                    {index === questions.length - 1 ? "Finish Challenge" : "Next Card"}
+                <div className="rounded-2xl bg-muted/40 border border-border/30 p-3.5 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                    <p className="text-xs text-foreground/80 leading-relaxed">{current.explanation}</p>
+                  </div>
+                  <Button className="w-full rounded-xl h-10 font-bold" onClick={() => setIndex(i => i + 1)}>
+                    {index === questions.length - 1 ? t("mealiq_finish") : t("mealiq_next")}
                   </Button>
                 </div>
               )}
             </>
           ) : (
-            <div className="text-center py-2 space-y-4">
-              <div className="w-20 h-20 rounded-3xl bg-primary/15 flex items-center justify-center mx-auto">
-                <Sparkles className="w-9 h-9 text-primary" />
+            <div className="text-center py-1 space-y-4">
+              <div className="relative inline-flex">
+                <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-primary/20 to-secondary/20 border border-primary/30 flex flex-col items-center justify-center mx-auto">
+                  <span className={cn("text-3xl font-black", scoreColor)}>{correctCount}</span>
+                  <span className="text-xs text-muted-foreground font-semibold">/ {questions.length}</span>
+                </div>
+                <div className="absolute -top-2 -right-2 w-8 h-8 rounded-2xl bg-yellow-400/20 border border-yellow-400/30 flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-yellow-400" />
+                </div>
               </div>
+
               <div>
-                <p className="text-2xl font-black">{correctCount}/{questions.length}</p>
-                <p className="text-sm text-muted-foreground">Meal IQ challenge complete!</p>
+                <p className="font-black text-lg">{t("mealiq_complete")}</p>
+                <p className={cn("text-sm font-semibold mt-1", scoreColor)}>
+                  {correctCount === questions.length ? t("mealiq_perfect") :
+                   correctCount >= questions.length - 1 ? t("mealiq_great") :
+                   correctCount >= 3 ? t("mealiq_good") :
+                   t("mealiq_keep")}
+                </p>
               </div>
 
               {coinsEarned > 0 ? (
-                <div className="flex items-center justify-center gap-2 bg-yellow-400/10 border border-yellow-400/30 rounded-2xl py-3 px-4">
-                  <Coins className="w-5 h-5 text-yellow-400" />
-                  <p className="text-lg font-black text-yellow-400">+{coinsEarned} Coins Earned!</p>
+                <div className="rounded-2xl bg-gradient-to-r from-yellow-500/15 to-orange-500/10 border border-yellow-500/30 p-4 space-y-1.5">
+                  <div className="flex items-center justify-center gap-2">
+                    <Coins className="w-5 h-5 text-yellow-400" />
+                    <p className="text-xl font-black text-yellow-400">+{coinsEarned} {t("mealiq_coins_earned")}</p>
+                  </div>
+                  {xpEarned > 0 && (
+                    <div className="flex items-center justify-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5 text-primary" />
+                      <p className="text-sm font-bold text-primary">+{xpEarned} XP added to your profile!</p>
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div className="flex flex-col items-center gap-2 bg-muted/40 border border-border/40 rounded-2xl py-3 px-4">
-                  <div className="flex items-center gap-2">
+                <div className="rounded-2xl bg-muted/40 border border-border/40 p-4 space-y-2">
+                  <div className="flex items-center justify-center gap-2">
                     <Lock className="w-4 h-4 text-muted-foreground" />
-                    <p className="text-sm font-black text-muted-foreground">Coins on cooldown</p>
+                    <p className="text-sm font-black text-muted-foreground">{t("mealiq_cooldown")}</p>
                   </div>
-                  <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/25 px-3 py-1.5 rounded-full">
+                  <div className="flex items-center justify-center gap-1.5 bg-amber-500/10 border border-amber-500/25 px-3 py-1.5 rounded-full">
                     <Clock className="w-3.5 h-3.5 text-amber-500" />
                     <p className="text-sm font-black text-amber-500">
-                      Next reward in {formatRemaining(cooldownRemaining)}
+                      {t("mealiq_next_reward")} {formatRemaining(cooldownRemaining)}
                     </p>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">Coins reset every hour — keep playing for fun!</p>
+                  <p className="text-[10px] text-muted-foreground">{t("mealiq_play_fun")}</p>
                 </div>
               )}
 
-              <div className={cn("rounded-xl p-2.5 text-xs font-semibold text-center",
-                correctCount === questions.length ? "bg-primary/10 text-primary" :
-                correctCount >= questions.length - 1 ? "bg-yellow-400/10 text-yellow-400" :
-                "bg-muted/40 text-muted-foreground"
-              )}>
-                {correctCount === questions.length ? "Perfect score! You're a nutrition pro." :
-                 correctCount >= questions.length - 1 ? "Great job! One step from perfect." :
-                 correctCount >= 3 ? "Good effort! Keep building your nutrition knowledge." :
-                 "Keep practicing — every quiz makes you smarter!"}
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <Button variant="outline" className="rounded-xl" onClick={reset}><RotateCcw className="w-4 h-4 mr-1" /> Replay</Button>
-                <Button className="rounded-xl" onClick={() => setOpen(false)}>Done</Button>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <Button variant="outline" className="rounded-xl h-10" onClick={reset}>
+                  <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> {t("mealiq_replay")}
+                </Button>
+                <Button className="rounded-xl h-10" onClick={() => setOpen(false)}>
+                  {t("mealiq_done")}
+                </Button>
               </div>
             </div>
           )}

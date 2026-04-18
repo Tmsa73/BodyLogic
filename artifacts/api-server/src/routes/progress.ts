@@ -77,6 +77,18 @@ router.get("/progress", async (req, res): Promise<void> => {
   res.json(GetProgressResponse.parse(progress));
 });
 
+router.post("/progress/award-game", async (req, res): Promise<void> => {
+  const { xp = 0, source = "game" } = req.body ?? {};
+  const safeXp = Math.min(Math.max(0, Number(xp)), 200);
+  if (safeXp > 0) {
+    await db.insert(xpLogsTable).values({ source: String(source), amount: safeXp });
+  }
+  const xpLogs = await db.select().from(xpLogsTable).orderBy(desc(xpLogsTable.earnedAt));
+  const totalXP = xpLogs.reduce((s, l) => s + l.amount, 0);
+  const coins = Math.floor(totalXP / 10);
+  res.json({ xpAwarded: safeXp, totalXP, coins });
+});
+
 router.get("/progress/missions", async (req, res): Promise<void> => {
   const [todayMealsR] = await db.select({ count: count() }).from(mealsTable);
   const [todayWorkoutsR] = await db.select({ count: count() }).from(workoutsTable);

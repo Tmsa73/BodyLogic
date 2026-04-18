@@ -45,7 +45,7 @@ type Language = "en" | "ar";
 
 // ── Config ─────────────────────────────────────────────────────────
 const LIFE_BALANCE_ITEMS = [
-  { id: "nutrition", label: "Food", color: "bg-primary", icon: Utensils, iconColor: "text-primary" },
+  { id: "nutrition", label: "Meals", color: "bg-primary", icon: Utensils, iconColor: "text-primary" },
   { id: "fitness", label: "Fit", color: "bg-secondary", icon: Dumbbell, iconColor: "text-secondary" },
   { id: "sleep", label: "Sleep", color: "bg-accent", icon: Moon, iconColor: "text-accent" },
   { id: "hydration", label: "Water", color: "bg-blue-400", icon: Droplets, iconColor: "text-blue-400" },
@@ -54,7 +54,7 @@ const LIFE_BALANCE_ITEMS = [
 
 const CATEGORY_TABS: { key: AchievementCategory | "all"; label: string; icon: string }[] = [
   { key: "all", label: "All", icon: "🏆" },
-  { key: "nutrition", label: "Food", icon: "🥗" },
+  { key: "nutrition", label: "Meals", icon: "🥗" },
   { key: "fitness", label: "Fitness", icon: "💪" },
   { key: "ai", label: "AI", icon: "🤖" },
   { key: "milestones", label: "XP", icon: "📈" },

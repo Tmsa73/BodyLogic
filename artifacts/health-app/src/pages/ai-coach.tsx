@@ -26,24 +26,18 @@ const TOPIC_CHIPS = [
   { icon: AlertTriangle, tKey: "ai_chip_habits" as const, label: "Fix my bad habits", color: "text-orange-400" },
 ];
 
-const HABIT_WARNINGS = [
-  { icon: "😴", text: "You skipped workouts for 2 days — let's get back on track!", color: "border-l-orange-400 bg-orange-400/5" },
-  { icon: "🥩", text: "Your protein intake has been low this week. Try adding more lean protein.", color: "border-l-primary bg-primary/5" },
-  { icon: "💧", text: "You're consistently under-hydrating. Try setting water reminders.", color: "border-l-blue-400 bg-blue-400/5" },
-];
-
 function TypingIndicator() {
   return (
-    <div className="flex gap-3 items-end">
-      <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+    <div className="flex gap-2.5 items-end">
+      <div className="w-8 h-8 rounded-2xl overflow-hidden shrink-0 bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
         <Sparkles className="w-4 h-4 text-background" />
       </div>
-      <div className="bg-card border border-border/50 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-        <div className="flex gap-1 items-center h-4">
+      <div className="bg-card border border-border/40 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+        <div className="flex gap-1.5 items-center h-4">
           {[0, 150, 300].map(delay => (
             <span
               key={delay}
-              className="w-2 h-2 rounded-full bg-primary/60 animate-bounce"
+              className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-bounce"
               style={{ animationDelay: `${delay}ms` }}
             />
           ))}
@@ -103,29 +97,32 @@ export default function AiCoach() {
   const habits = insights?.tips?.slice(0, 2) ?? [];
 
   return (
-    <div className="flex flex-col bg-background overflow-hidden" style={{ height: "calc(100dvh - 62px)", marginBottom: "-90px" }}>
+    <div
+      className="flex flex-col bg-background"
+      style={{ height: "calc(100dvh - 58px)", marginBottom: "-72px" }}
+    >
       {/* Header */}
-      <header className="px-5 py-3 border-b border-border/40 glass sticky top-0 z-10 shrink-0">
+      <header className="px-4 py-2.5 border-b border-border/40 bg-card/80 backdrop-blur-sm sticky top-0 z-10 shrink-0">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <div className="relative">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-md">
-                <img src="/logo.png" alt="AI" className="w-7 h-7 object-contain" />
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-md">
+                <Sparkles className="w-4.5 h-4.5 text-background" />
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-background rounded-full" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 border-2 border-background rounded-full" />
             </div>
             <div>
               <h1 className="font-black text-sm leading-tight">{t("ai_title")}</h1>
-              <p className="text-[10px] font-bold text-primary/80 uppercase tracking-wider">{t("ai_online")}</p>
+              <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider">{t("ai_online")}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowPersonalityPicker(!showPersonalityPicker)}
-              className={cn("flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-[10px] font-bold transition-all", personalityCfg.color)}
+              className={cn("flex items-center gap-1 px-2 py-1 rounded-full border text-[10px] font-bold transition-all", personalityCfg.color)}
             >
               <span>{personalityCfg.emoji}</span>
-              <span>{personalityCfg.label}</span>
+              <span className="hidden sm:inline">{personalityCfg.label}</span>
             </button>
             {hasMessages && (
               <div className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded-full">
@@ -135,6 +132,7 @@ export default function AiCoach() {
             )}
           </div>
         </div>
+
         <AnimatePresence>
           {showPersonalityPicker && (
             <motion.div
@@ -149,7 +147,7 @@ export default function AiCoach() {
                     key={key}
                     onClick={() => { setPersonality(key); setShowPersonalityPicker(false); }}
                     className={cn(
-                      "flex flex-col items-center gap-1 p-2 rounded-xl border transition-all text-[10px] font-bold",
+                      "flex flex-col items-center gap-0.5 p-2 rounded-xl border transition-all text-[10px] font-bold",
                       personality === key ? cfg.color : "border-border/40 bg-muted/20 text-muted-foreground"
                     )}
                   >
@@ -170,9 +168,11 @@ export default function AiCoach() {
             onClick={() => setShowInsights(!showInsights)}
             className="w-full flex items-center gap-2 px-4 py-2 hover:bg-muted/30 transition-colors"
           >
-            <Lightbulb className="w-3.5 h-3.5 text-primary shrink-0" />
+            <div className="w-5 h-5 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Lightbulb className="w-3 h-3 text-primary" />
+            </div>
             <span className="text-xs font-bold text-primary flex-1 text-left">
-              {habits.length} AI insight{habits.length > 1 ? "s" : ""} based on your data
+              {habits.length} {habits.length > 1 ? t("ai_insights_label") : t("ai_insight_label")}
             </span>
             {showInsights ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
           </button>
@@ -197,7 +197,7 @@ export default function AiCoach() {
                     const color = categoryColors[tip.category] ?? categoryColors.general;
                     return (
                       <div key={i} className={cn("flex items-start gap-2 p-2.5 rounded-xl border-l-2", color)}>
-                        <Lightbulb className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                        <Lightbulb className="w-3 h-3 text-primary shrink-0 mt-0.5" />
                         <div>
                           <p className="text-xs font-bold text-foreground">{tip.title}</p>
                           <p className="text-[10px] text-foreground/70 leading-snug mt-0.5">{tip.description}</p>
@@ -212,23 +212,24 @@ export default function AiCoach() {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Messages area */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
         {!hasMessages ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4 gap-5">
             <div className="relative">
-              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/20 to-secondary/20 border border-primary/30 flex items-center justify-center">
-                <Sparkles className="w-10 h-10 text-primary" />
+              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/20 to-secondary/20 border border-primary/30 flex items-center justify-center shadow-lg">
+                <Sparkles className="w-9 h-9 text-primary" />
               </div>
               <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-xl bg-secondary/20 border border-secondary/30 flex items-center justify-center">
                 <Brain className="w-4 h-4 text-secondary" />
               </div>
             </div>
-            <div>
-              <h2 className="font-black text-xl mb-1.5">{t("ai_coach_title")}</h2>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+            <div className="space-y-1.5">
+              <h2 className="font-black text-lg">{t("ai_coach_title")}</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
                 {t("ai_coach_desc")}
               </p>
-              <div className={cn("mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold", personalityCfg.color)}>
+              <div className={cn("mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold", personalityCfg.color)}>
                 <span>{personalityCfg.emoji}</span>
                 <span>{t("ai_mode")} {personalityCfg.label} {t("ai_mode_suffix")}</span>
               </div>
@@ -239,10 +240,10 @@ export default function AiCoach() {
                   key={chip.label}
                   onClick={() => handleSend(chip.label)}
                   disabled={sendMessage.isPending}
-                  className="flex items-center gap-2.5 p-3 rounded-xl bg-card border border-border/40 text-left hover:border-primary/30 hover:bg-primary/5 transition-all press-scale"
+                  className="flex items-center gap-2 p-3 rounded-xl bg-card border border-border/40 text-left hover:border-primary/30 hover:bg-primary/5 transition-all press-scale"
                 >
                   <chip.icon className={cn("w-4 h-4 shrink-0", chip.color)} />
-                  <span className="text-xs font-semibold text-foreground">{t(chip.tKey)}</span>
+                  <span className="text-xs font-semibold text-foreground leading-snug">{t(chip.tKey)}</span>
                 </button>
               ))}
             </div>
@@ -258,23 +259,23 @@ export default function AiCoach() {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(idx * 0.03, 0.2) }}
-                  className={cn("flex gap-3", isUser ? "flex-row-reverse" : "flex-row")}
+                  className={cn("flex gap-2.5", isUser ? "flex-row-reverse" : "flex-row")}
                 >
                   {!isUser && (
-                    <div className="w-8 h-8 rounded-xl shrink-0 mt-auto bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-sm">
+                    <div className="w-7 h-7 rounded-xl shrink-0 mt-auto bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-sm">
                       <Sparkles className="w-3.5 h-3.5 text-background" />
                     </div>
                   )}
-                  <div className="flex flex-col gap-1 max-w-[82%]">
+                  <div className="flex flex-col gap-0.5 max-w-[82%]">
                     <div className={cn(
-                      "px-4 py-3 text-sm leading-relaxed",
+                      "px-3.5 py-2.5 text-sm leading-relaxed",
                       isUser
                         ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-2xl rounded-br-sm shadow-md"
                         : "bg-card border border-border/40 text-foreground rounded-2xl rounded-bl-sm shadow-sm"
                     )}>
                       {isUser ? msg.content : <div className="space-y-0.5 text-[13px]">{formatMessage(msg.content)}</div>}
                     </div>
-                    <span className={cn("text-[9px] font-bold text-muted-foreground/60 px-1", isUser ? "text-right" : "text-left")}>{time}</span>
+                    <span className={cn("text-[9px] font-bold text-muted-foreground/50 px-1", isUser ? "text-right" : "text-left")}>{time}</span>
                   </div>
                 </motion.div>
               );
@@ -285,17 +286,19 @@ export default function AiCoach() {
         <div ref={messagesEndRef} />
       </div>
 
-
-      {/* Quick chips — always visible, compact horizontal scroll */}
-      <div className="px-4 pt-2 pb-1 flex gap-2 overflow-x-auto shrink-0" style={{ scrollbarWidth: "none" }}>
+      {/* Quick topic chips */}
+      <div
+        className="px-4 pt-2 pb-1.5 flex gap-1.5 overflow-x-auto shrink-0 border-t border-border/20"
+        style={{ scrollbarWidth: "none" }}
+      >
         {TOPIC_CHIPS.map(chip => (
           <button
             key={chip.label}
             onClick={() => handleSend(chip.label)}
             disabled={sendMessage.isPending}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-semibold whitespace-nowrap transition-all press-scale shrink-0",
-              "bg-card border-border/40 hover:border-primary/30 hover:bg-primary/5"
+              "flex items-center gap-1 px-2.5 py-1.5 rounded-full border text-[10px] font-semibold whitespace-nowrap transition-all press-scale shrink-0",
+              "bg-card border-border/30 hover:border-primary/30 hover:bg-primary/5"
             )}
           >
             <chip.icon className={cn("w-3 h-3", chip.color)} />
@@ -305,8 +308,8 @@ export default function AiCoach() {
       </div>
 
       {/* Input area */}
-      <div className="px-4 pt-2 pb-4 bg-background border-t border-border/40 shrink-0">
-        <div className="flex gap-2">
+      <div className="px-4 pt-2 pb-3 bg-background border-t border-border/40 shrink-0">
+        <div className="flex gap-2 items-center">
           <div className="flex-1 relative">
             <input
               ref={inputRef}
@@ -315,14 +318,14 @@ export default function AiCoach() {
               onKeyDown={e => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleSend())}
               placeholder={`${t("ai_send_placeholder")} ${personalityCfg.label.toLowerCase()} ${t("ai_send_placeholder_suffix")}`}
               disabled={sendMessage.isPending}
-              className="w-full rounded-full bg-card border border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 h-12 px-5 text-sm outline-none transition-all placeholder:text-muted-foreground/60"
+              className="w-full rounded-full bg-card border border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 h-11 px-4 text-sm outline-none transition-all placeholder:text-muted-foreground/50"
             />
           </div>
           <Button
             onClick={() => handleSend()}
             size="icon"
             disabled={sendMessage.isPending || !input.trim()}
-            className="rounded-full h-12 w-12 shrink-0 bg-primary text-background hover:bg-primary/90 transition-all active:scale-95 shadow-lg glow-primary"
+            className="rounded-full h-11 w-11 shrink-0 bg-primary text-background hover:bg-primary/90 transition-all active:scale-95 shadow-md"
           >
             <Send className="w-4 h-4 ml-0.5" />
           </Button>
@@ -334,9 +337,9 @@ export default function AiCoach() {
 
 function AiCoachSkeleton() {
   return (
-    <div className="flex flex-col bg-background overflow-hidden" style={{ height: "calc(100dvh - 62px)", marginBottom: "-90px" }}>
-      <header className="px-5 py-3.5 border-b flex items-center gap-3">
-        <Skeleton className="w-10 h-10 rounded-xl shimmer" />
+    <div className="flex flex-col bg-background" style={{ height: "calc(100dvh - 58px)", marginBottom: "-72px" }}>
+      <header className="px-4 py-2.5 border-b flex items-center gap-2.5">
+        <Skeleton className="w-9 h-9 rounded-xl shimmer" />
         <div className="space-y-1.5">
           <Skeleton className="h-3.5 w-28 shimmer" />
           <Skeleton className="h-2.5 w-16 shimmer" />
@@ -350,8 +353,8 @@ function AiCoachSkeleton() {
         </div>
       </div>
       <div className="p-4 border-t flex gap-2">
-        <Skeleton className="h-12 flex-1 rounded-full shimmer" />
-        <Skeleton className="h-12 w-12 rounded-full shimmer" />
+        <Skeleton className="h-11 flex-1 rounded-full shimmer" />
+        <Skeleton className="h-11 w-11 rounded-full shimmer" />
       </div>
     </div>
   );
