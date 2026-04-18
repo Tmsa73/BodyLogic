@@ -353,6 +353,10 @@ const translations = {
     // Home
     home_habit: "Habit",
 
+    // Sleep chart
+    sleep_trend_title: "7-Day Sleep Trend",
+    sleep_trend_avg: "Avg Sleep",
+
     // Nutrition extras
     nutrition_fiber_sugar: "Fiber & Sugar",
 
@@ -721,6 +725,10 @@ const translations = {
 
     // Home
     home_habit: "العادة",
+
+    // Sleep chart
+    sleep_trend_title: "نوم ٧ أيام",
+    sleep_trend_avg: "متوسط النوم",
 
     // Nutrition extras
     nutrition_fiber_sugar: "الألياف والسكر",

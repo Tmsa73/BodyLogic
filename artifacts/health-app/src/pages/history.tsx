@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
-import { useGetHistory, GetHistoryType } from "@workspace/api-client-react";
+import { useGetHistory, useGetSleepLogs, GetHistoryType } from "@workspace/api-client-react";
 import { useLang } from "@/contexts/language-context";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Utensils, Dumbbell, Moon, Footprints, Droplets, TrendingUp, Calendar, ChevronDown, ChevronUp } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { Utensils, Dumbbell, Moon, Footprints, Droplets, TrendingUp, Calendar, ChevronDown, ChevronUp, BedDouble } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, ReferenceLine, CartesianGrid } from "recharts";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 type DayRange = 7 | 30 | 90;
 
@@ -21,6 +22,7 @@ export default function History() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
   const { data: history, isLoading } = useGetHistory({ type: filter, limit: 100, days });
+  const { data: sleepLogs } = useGetSleepLogs({ limit: 30 });
   const { t } = useLang();
 
   const stats = useMemo(() => {
@@ -54,6 +56,26 @@ export default function History() {
     });
     return Object.values(map);
   }, [history, days]);
+
+  const sleepChartData = useMemo(() => {
+    const result: { day: string; hours: number | null; quality: string }[] = [];
+    const now = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split("T")[0];
+      const dayLabel = i === 0 ? t("history_today").slice(0, 3) : d.toLocaleDateString([], { weekday: "short" });
+      const log = sleepLogs?.find(s => s.date === dateStr);
+      result.push({ day: dayLabel, hours: log ? Math.round(log.durationHours * 10) / 10 : 0, quality: log?.quality ?? "" });
+    }
+    return result;
+  }, [sleepLogs, t]);
+
+  const sleepAvg = useMemo(() => {
+    const logged = sleepChartData.filter(d => (d.hours ?? 0) > 0);
+    if (!logged.length) return 0;
+    return Math.round((logged.reduce((acc, d) => acc + (d.hours ?? 0), 0) / logged.length) * 10) / 10;
+  }, [sleepChartData]);
 
   const grouped = useMemo(() => {
     if (!history) return [];
@@ -110,6 +132,115 @@ export default function History() {
             </div>
           ))}
         </div>
+
+        {/* ── 7-Day Sleep Trend Chart ── */}
+        <motion.div
+          className="rounded-2xl bg-card border border-purple-500/20 overflow-hidden"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          {/* Header */}
+          <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-purple-500/15 flex items-center justify-center">
+                <BedDouble className="w-3.5 h-3.5 text-purple-400" />
+              </div>
+              <div>
+                <p className="text-xs font-black text-foreground uppercase tracking-wider">{t("sleep_trend_title")}</p>
+                <p className="text-[9px] text-muted-foreground font-medium">{t("history_sleep")} · {t("rewards_progress")}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-lg font-black text-purple-400">{sleepAvg > 0 ? `${sleepAvg}h` : "—"}</div>
+              <div className="text-[9px] text-muted-foreground font-bold uppercase">{t("sleep_trend_avg")}</div>
+            </div>
+          </div>
+
+          {/* Zone legend */}
+          <div className="px-4 pb-2 flex items-center gap-3">
+            {[
+              { color: "bg-red-500", label: "< 6h" },
+              { color: "bg-amber-400", label: "6–7h" },
+              { color: "bg-emerald-500", label: "7–9h" },
+              { color: "bg-blue-500", label: "> 9h" },
+            ].map(z => (
+              <div key={z.label} className="flex items-center gap-1">
+                <div className={cn("w-2 h-2 rounded-full", z.color)} />
+                <span className="text-[9px] text-muted-foreground font-bold">{z.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Bar chart */}
+          <div className="h-44 px-2 pb-3">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={sleepChartData} margin={{ top: 8, right: 4, left: -28, bottom: 0 }} barCategoryGap="28%">
+                <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.3} strokeDasharray="4 3" />
+                <XAxis
+                  dataKey="day"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))", fontWeight: 700 }}
+                />
+                <YAxis
+                  domain={[0, 12]}
+                  ticks={[0, 3, 6, 9, 12]}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
+                  tickFormatter={v => v === 0 ? "" : `${v}h`}
+                />
+                <Tooltip
+                  cursor={{ fill: "hsl(var(--muted))", radius: 6, opacity: 0.5 }}
+                  content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null;
+                    const d = payload[0].payload as { day: string; hours: number; quality: string };
+                    if (!d.hours) return null;
+                    const qualityColor = d.quality === "excellent" ? "text-emerald-400" : d.quality === "good" ? "text-emerald-500" : d.quality === "fair" ? "text-amber-400" : "text-red-400";
+                    const qualityLabel = d.quality === "excellent" ? t("fitness_excellent") : d.quality === "good" ? t("fitness_good") : d.quality === "fair" ? t("fitness_fair") : d.quality === "poor" ? t("fitness_poor") : "";
+                    return (
+                      <div className="bg-card border border-border rounded-xl px-3 py-2 shadow-lg text-xs">
+                        <p className="font-black text-foreground">{d.day}</p>
+                        <p className="font-bold text-purple-400">{d.hours}h {t("history_sleep")}</p>
+                        {qualityLabel && <p className={cn("font-bold text-[10px]", qualityColor)}>{qualityLabel}</p>}
+                      </div>
+                    );
+                  }}
+                />
+                {/* Reference lines */}
+                <ReferenceLine y={7} stroke="rgba(16,185,129,0.35)" strokeDasharray="6 3" strokeWidth={1.5} />
+                <ReferenceLine y={9} stroke="rgba(59,130,246,0.30)" strokeDasharray="6 3" strokeWidth={1.5} />
+                <ReferenceLine y={6} stroke="rgba(239,68,68,0.30)" strokeDasharray="6 3" strokeWidth={1.5} />
+                <Bar dataKey="hours" radius={[5, 5, 0, 0]} maxBarSize={32}>
+                  {sleepChartData.map((entry, index) => {
+                    const h = entry.hours ?? 0;
+                    const fill = h === 0
+                      ? "hsl(var(--muted))"
+                      : h < 6 ? "#ef4444"
+                      : h < 7 ? "#f59e0b"
+                      : h <= 9 ? "#10b981"
+                      : "#3b82f6";
+                    return <Cell key={index} fill={fill} fillOpacity={h === 0 ? 0.25 : 0.85} />;
+                  })}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Day-by-day quality row */}
+          <div className="px-4 pb-4 grid grid-cols-7 gap-1">
+            {sleepChartData.map((d, i) => {
+              const qualityDot = d.quality === "excellent" ? "bg-emerald-400" : d.quality === "good" ? "bg-emerald-500" : d.quality === "fair" ? "bg-amber-400" : d.quality === "poor" ? "bg-red-500" : "bg-muted-foreground/20";
+              return (
+                <div key={i} className="flex flex-col items-center gap-1">
+                  <div className={cn("w-2 h-2 rounded-full", qualityDot)} />
+                  <span className="text-[8px] text-muted-foreground font-bold">{d.hours ? `${d.hours}h` : "—"}</span>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
 
         {chartData.some(d => d.count > 0) && (
           <div className="rounded-2xl bg-card border border-border/40 p-4">
