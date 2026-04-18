@@ -1,8 +1,10 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import {
   useGetProfile, useGetProfileStats, useUpdateProfile, useGetProgress,
   useGetMissions, useGetLifeBalance, getGetProfileQueryKey,
+  useGetHistory, useGetSleepLogs, GetHistoryType,
 } from "@workspace/api-client-react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from "recharts";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,8 +19,8 @@ import {
   CheckCircle2, Dumbbell, Utensils, Crown, Activity, Calendar, Award,
   Target, Lock, TrendingUp, TrendingDown, Minus,
   Bot, Palette, Bell, Shield, Info, Globe, Volume2, Download,
-  Trash2, Brain, Heart, AlertTriangle, ChevronRight, Sword, Lightbulb,
-  Sun, Monitor, Camera, Coins, Ruler, Weight, Droplets,
+  Trash2, Brain, Heart, AlertTriangle, ChevronRight, ChevronDown, ChevronUp, Sword, Lightbulb,
+  Sun, Monitor, Camera, Coins, Ruler, Weight, Droplets, Clock,
 } from "lucide-react";
 import {
   ALL_ACHIEVEMENTS, ALL_TITLES, TIER_CONFIG, CATEGORY_CONFIG,
@@ -35,7 +37,7 @@ import { useLang } from "@/contexts/language-context";
 import { areSoundEffectsEnabled, playGamificationSound, setSoundEffectsEnabled } from "@/lib/sounds";
 
 // ── Types ──────────────────────────────────────────────────────────
-type ProfileTab = "me" | "rewards" | "settings";
+type ProfileTab = "me" | "rewards" | "history" | "settings";
 type RewardsTab = "achievements" | "titles" | "missions" | "bosses";
 type MissionTab = "daily" | "weekly" | "smart";
 type AiPersonality = "motivator" | "friendly" | "strict" | "silent" | "custom";
@@ -167,6 +169,7 @@ export default function Profile() {
   const TABS: { key: ProfileTab; label: string; icon: typeof User }[] = [
     { key: "me", label: t("profile_tab_me"), icon: User },
     { key: "rewards", label: t("profile_tab_rewards"), icon: Trophy },
+    { key: "history", label: t("nav_history"), icon: Clock },
     { key: "settings", label: t("profile_tab_settings"), icon: Settings },
   ];
 
@@ -232,6 +235,18 @@ export default function Profile() {
               progress={progress} missions={missions} levelInfo={levelInfo}
               activeTitle={activeTitle} unlockedIds={unlockedIds} unlockedCount={unlockedAchievements.length}
             />
+          </motion.div>
+        )}
+
+        {tab === "history" && (
+          <motion.div
+            key="history"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <HistoryTab />
           </motion.div>
         )}
 
@@ -882,6 +897,224 @@ function MissionIcon({ icon, className }: { icon: string; className?: string }) 
   };
   const Icon = iconMap[icon] ?? Target;
   return <Icon className={className} />;
+}
+
+// ── HISTORY TAB ───────────────────────────────────────────────────
+function HistoryTab() {
+  const { t } = useLang();
+  const [filter, setFilter] = useState<GetHistoryType>("all");
+  const [days, setDays] = useState<7 | 30>(7);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+
+  const { data: history, isLoading } = useGetHistory({ type: filter, limit: 100, days });
+
+  const stats = useMemo(() => {
+    if (!history) return { meals: 0, workouts: 0, sleep: 0 };
+    return {
+      meals: history.filter(h => h.type === "meal").length,
+      workouts: history.filter(h => h.type === "workout").length,
+      sleep: history.filter(h => h.type === "sleep").length,
+    };
+  }, [history]);
+
+  const chartData = useMemo(() => {
+    if (!history) return [];
+    const map: Record<string, { date: string; count: number }> = {};
+    const now = new Date();
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = d.toLocaleDateString([], { month: "short", day: "numeric" });
+      map[key] = { date: key, count: 0 };
+    }
+    history.forEach(h => {
+      const key = new Date(h.date).toLocaleDateString([], { month: "short", day: "numeric" });
+      if (map[key]) map[key].count++;
+    });
+    return Object.values(map);
+  }, [history, days]);
+
+  const grouped = useMemo(() => {
+    if (!history) return [];
+    const groups: Record<string, typeof history> = {};
+    history.forEach(h => {
+      const d = new Date(h.date);
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      let label: string;
+      if (d.toDateString() === today.toDateString()) label = t("history_today");
+      else if (d.toDateString() === yesterday.toDateString()) label = t("history_yesterday");
+      else label = d.toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" });
+      if (!groups[label]) groups[label] = [];
+      groups[label].push(h);
+    });
+    return Object.entries(groups);
+  }, [history, t]);
+
+  const TYPE_CFG = {
+    meal: { icon: Utensils, color: "bg-primary", textColor: "text-primary", border: "border-primary/30" },
+    workout: { icon: Dumbbell, color: "bg-secondary", textColor: "text-secondary", border: "border-secondary/30" },
+    sleep: { icon: Moon, color: "bg-purple-500", textColor: "text-purple-400", border: "border-purple-500/30" },
+    water: { icon: Droplets, color: "bg-blue-500", textColor: "text-blue-400", border: "border-blue-500/30" },
+  };
+
+  return (
+    <div className="p-5 space-y-5 pb-24">
+      {/* Header controls */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs text-muted-foreground">{t("history_journey")}</p>
+        </div>
+        <div className="flex gap-1 bg-muted/50 p-1 rounded-xl">
+          {([7, 30] as const).map(d => (
+            <button
+              key={d}
+              onClick={() => setDays(d)}
+              className={cn(
+                "text-[11px] font-bold px-2.5 py-1 rounded-lg transition-all",
+                days === d ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground"
+              )}
+            >
+              {d}D
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          { label: t("history_meals"), count: stats.meals, icon: Utensils, color: "text-primary", bg: "bg-primary/10" },
+          { label: t("history_workouts"), count: stats.workouts, icon: Dumbbell, color: "text-secondary", bg: "bg-secondary/10" },
+          { label: t("history_sleep"), count: stats.sleep, icon: Moon, color: "text-purple-400", bg: "bg-purple-500/10" },
+        ].map(s => (
+          <div key={s.label} className={cn("rounded-2xl p-3 border border-border/40 flex flex-col gap-1", s.bg)}>
+            <s.icon className={cn("w-4 h-4", s.color)} />
+            <div className="text-2xl font-black">{s.count}</div>
+            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Activity Trend Chart */}
+      {chartData.some(d => d.count > 0) && (
+        <div className="rounded-2xl bg-card border border-border/40 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="w-4 h-4 text-primary" />
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("history_activity")}</span>
+          </div>
+          <div className="h-24">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 2, right: 0, left: -30, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="profileAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 8, fill: "hsl(var(--muted-foreground))" }} interval={days === 7 ? 0 : 4} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 8, fill: "hsl(var(--muted-foreground))" }} allowDecimals={false} />
+                <Tooltip
+                  contentStyle={{ borderRadius: "10px", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: "11px", padding: "6px 10px" }}
+                  itemStyle={{ color: "hsl(var(--foreground))" }}
+                  cursor={{ stroke: "hsl(var(--primary))", strokeWidth: 1, strokeDasharray: "4 2" }}
+                />
+                <Area type="monotone" dataKey="count" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#profileAreaGrad)" dot={false} activeDot={{ r: 4, fill: "hsl(var(--primary))" }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Category filter */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {(["all", "meal", "workout", "sleep"] as GetHistoryType[]).map(f => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={cn(
+              "px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all",
+              filter === f
+                ? f === "all" ? "bg-primary text-primary-foreground"
+                  : f === "meal" ? "bg-primary text-primary-foreground"
+                  : f === "workout" ? "bg-secondary text-secondary-foreground"
+                  : "bg-purple-500 text-white"
+                : "bg-muted/60 text-muted-foreground border border-border/40"
+            )}
+          >
+            {f === "all" ? t("history_all") : f === "meal" ? `🍽 ${t("history_meals")}` : f === "workout" ? `💪 ${t("history_workouts")}` : `😴 ${t("history_sleep")}`}
+          </button>
+        ))}
+      </div>
+
+      {/* History list */}
+      {isLoading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full rounded-2xl shimmer" />)}
+        </div>
+      ) : !history || history.length === 0 ? (
+        <div className="py-12 text-center flex flex-col items-center gap-3">
+          <div className="w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center">
+            <Calendar className="w-7 h-7 text-muted-foreground/50" />
+          </div>
+          <p className="text-sm font-bold text-muted-foreground">{t("history_no_records")}</p>
+          <p className="text-xs text-muted-foreground/70">{t("history_no_records_hint")}</p>
+        </div>
+      ) : (
+        <div className="space-y-5">
+          {grouped.map(([dayLabel, entries]) => (
+            <div key={dayLabel}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{dayLabel}</span>
+                <div className="flex-1 h-px bg-border/40" />
+                <span className="text-[10px] font-bold text-muted-foreground/60">{entries.length}</span>
+              </div>
+              <div className="space-y-2">
+                {entries.map(entry => {
+                  const cfg = TYPE_CFG[entry.type as keyof typeof TYPE_CFG] ?? TYPE_CFG.meal;
+                  const isExpanded = expandedId === entry.id;
+                  const timeStr = new Date(entry.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                  const hasExtra = entry.metadata && Object.keys(entry.metadata).length > 0;
+                  return (
+                    <div
+                      key={entry.id}
+                      className={cn("rounded-2xl bg-card border border-border/40 shadow-sm overflow-hidden transition-all cursor-pointer", isExpanded && "border-border/60")}
+                      onClick={() => hasExtra && setExpandedId(isExpanded ? null : entry.id)}
+                    >
+                      <div className="flex items-center gap-3 p-3">
+                        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", cfg.color)}>
+                          <cfg.icon className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-sm leading-tight truncate">{entry.title}</h3>
+                          <p className="text-xs text-muted-foreground truncate">{entry.subtitle}</p>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="text-[10px] font-bold text-muted-foreground">{timeStr}</span>
+                          {hasExtra && (isExpanded ? <ChevronUp className="w-3 h-3 text-muted-foreground" /> : <ChevronDown className="w-3 h-3 text-muted-foreground" />)}
+                        </div>
+                      </div>
+                      {isExpanded && hasExtra && (
+                        <div className="px-4 pb-3 pt-1 border-t border-border/30 flex flex-wrap gap-3">
+                          {Object.entries(entry.metadata!).map(([k, v]) => (
+                            <div key={k} className="flex flex-col">
+                              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{k}</span>
+                              <span className={cn("text-sm font-bold", cfg.textColor)}>{String(v)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ── SETTINGS TAB ─────────────────────────────────────────────────
