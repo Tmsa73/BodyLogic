@@ -118,12 +118,17 @@ export default function Home() {
   const stepsPct = Math.min(100, Math.round(((steps?.todaySteps ?? dashboard.todaySteps) / (steps?.stepGoal ?? dashboard.stepGoal)) * 100));
   const waterPct = Math.min(100, Math.round(((water?.totalMl ?? dashboard.waterMl) / (water?.goalMl ?? dashboard.waterGoalMl)) * 100));
 
+  const todayMealCount = (dashboard.recentActivity ?? []).filter((a: any) => a.type === "meal").length;
+  const inferredMealsToday = todayMealCount > 0
+    ? todayMealCount
+    : (dashboard.todayCalories >= 1500 ? 3 : dashboard.todayCalories >= 800 ? 2 : dashboard.todayCalories > 0 ? 1 : 0);
   const momentumData = calcMomentumScore({
     currentStreak: progress?.stats?.currentStreak ?? 0,
-    totalWorkoutsThisWeek: Math.ceil((progress?.stats?.totalWorkouts ?? 0) / 4),
-    mealsLoggedToday: Math.min(3, Math.floor(dashboard.todayCalories / 500)),
+    totalWorkoutsThisWeek: dashboard.weeklyWorkouts ?? 0,
+    mealsLoggedToday: inferredMealsToday,
     waterGoalMet: waterPct >= 100,
     sleepHoursLast: dashboard.lastSleepHours,
+    stepsPct,
   });
 
   const getBalanceGradeColor = (score: number) => {
@@ -164,9 +169,7 @@ export default function Home() {
     nutrition: "text-primary", fitness: "text-secondary", sleep: "text-accent", water: "text-blue-400", general: "text-yellow-400"
   };
 
-  const balanceScore = balance?.overallScore ?? dashboard.lifeBalanceScore;
   const circumference = 2 * Math.PI * 45;
-  const strokeDashoffset = circumference - (balanceScore / 100) * circumference;
   const activeTitle = progress ? getActiveTitle(progress.level, getStoredTitleId()) : null;
   const streak = progress?.stats?.currentStreak ?? 0;
 
@@ -177,6 +180,10 @@ export default function Home() {
     { label: t("home_water_label"), score: waterPct, color: "bg-blue-400", icon: Droplets },
     { label: t("home_habit"), score: Math.min(100, Math.round((streak / 7) * 100)), color: "bg-yellow-400", icon: Flame },
   ];
+
+  // Overall score = average of the visible pillars so the number always matches what the user sees
+  const balanceScore = Math.round(pillars.reduce((s, p) => s + p.score, 0) / pillars.length);
+  const strokeDashoffset = circumference - (balanceScore / 100) * circumference;
 
   const getPillarTag = (s: number) =>
     s >= 70 ? { label: t("grade_pro"), key: "Pro", cls: "text-primary" } :

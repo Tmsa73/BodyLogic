@@ -298,14 +298,19 @@ export function calcMomentumScore(stats: {
   mealsLoggedToday: number;
   waterGoalMet: boolean;
   sleepHoursLast: number;
+  stepsPct?: number;
 }): { score: number; label: string; color: string; emoji: string } {
   let score = 0;
   if (stats.currentStreak >= 7) score += 30;
   else if (stats.currentStreak >= 3) score += 20;
   else if (stats.currentStreak >= 1) score += 10;
-  if (stats.totalWorkoutsThisWeek >= 5) score += 25;
-  else if (stats.totalWorkoutsThisWeek >= 3) score += 15;
-  else if (stats.totalWorkoutsThisWeek >= 1) score += 8;
+  // Fitness: workouts logged OR daily steps progress, whichever is higher
+  let fitnessPts = 0;
+  if (stats.totalWorkoutsThisWeek >= 5) fitnessPts = 25;
+  else if (stats.totalWorkoutsThisWeek >= 3) fitnessPts = 15;
+  else if (stats.totalWorkoutsThisWeek >= 1) fitnessPts = 8;
+  const stepsPts = Math.round(((stats.stepsPct ?? 0) / 100) * 25);
+  score += Math.max(fitnessPts, stepsPts);
   if (stats.mealsLoggedToday >= 3) score += 20;
   else if (stats.mealsLoggedToday >= 2) score += 12;
   else if (stats.mealsLoggedToday >= 1) score += 5;
