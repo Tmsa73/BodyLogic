@@ -199,15 +199,16 @@ export default function Home() {
   };
 
   const streakPts = streak >= 7 ? 30 : streak >= 3 ? 20 : streak >= 1 ? 10 : 0;
-  const wkPts = Math.ceil((progress?.stats?.totalWorkouts ?? 0) / 4);
-  const workoutPts = wkPts >= 5 ? 25 : wkPts >= 3 ? 15 : wkPts >= 1 ? 8 : 0;
-  const mealsToday = Math.min(3, Math.floor(dashboard.todayCalories / 500));
-  const mealPts = mealsToday >= 3 ? 20 : mealsToday >= 2 ? 12 : mealsToday >= 1 ? 5 : 0;
-  const waterPts = waterPct >= 100 ? 15 : 0;
+  const weeklyWk = dashboard.weeklyWorkouts ?? 0;
+  const workoutPts = weeklyWk >= 5 ? 25 : weeklyWk >= 3 ? 15 : weeklyWk >= 1 ? 8 : 0;
+  const stepsFitnessPts = Math.round((stepsPct / 100) * 25);
+  const fitnessPts = Math.max(workoutPts, stepsFitnessPts);
+  const mealPts = inferredMealsToday >= 3 ? 20 : inferredMealsToday >= 2 ? 12 : inferredMealsToday >= 1 ? 5 : 0;
+  const waterPts = waterPct >= 100 ? 15 : Math.round((waterPct / 100) * 15);
   const sleepPts = dashboard.lastSleepHours >= 7 ? 10 : dashboard.lastSleepHours >= 6 ? 5 : 0;
   const factors = [
     { label: t("home_streak_short"), pts: streakPts, max: 30, icon: Flame, color: "bg-orange-400" },
-    { label: t("nav_fitness"), pts: workoutPts, max: 25, icon: Dumbbell, color: "bg-secondary" },
+    { label: t("nav_fitness"), pts: fitnessPts, max: 25, icon: Dumbbell, color: "bg-secondary" },
     { label: t("home_meal"), pts: mealPts, max: 20, icon: Utensils, color: "bg-primary" },
     { label: t("home_water_label"), pts: waterPts, max: 15, icon: Droplets, color: "bg-blue-400" },
     { label: t("home_sleep_label"), pts: sleepPts, max: 10, icon: Moon, color: "bg-accent" },
