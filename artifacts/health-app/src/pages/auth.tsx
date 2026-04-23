@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { useLang } from "@/hooks/use-lang";
-const appLogo = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/bodylogic-logo.png?v=4`;
+const appLogo = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/bodylogic-logo.png?v=5`;
 
 function clearLocalProgress() {
   try {
