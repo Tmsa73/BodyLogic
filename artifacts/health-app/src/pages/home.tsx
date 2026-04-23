@@ -480,9 +480,6 @@ export default function Home() {
             <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden">
               <div className="h-full bg-secondary rounded-full transition-all" style={{ width: `${stepsPct}%` }} />
             </div>
-            {!editingSteps && (
-              <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-secondary/15 text-secondary text-[11px] font-black flex items-center justify-center leading-none pointer-events-none">+</span>
-            )}
           </div>
           <div className="col-span-1 bg-card rounded-2xl p-3 border border-border/50 hover-elevate">
             <div className="w-7 h-7 rounded-lg bg-blue-500/15 flex items-center justify-center mb-2">

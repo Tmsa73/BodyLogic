@@ -37,10 +37,44 @@ export default function Fitness() {
   const { data: workouts, isLoading: isLoadingWorkouts } = useGetWorkouts({ date });
   const { data: sleepLogs, isLoading: isLoadingSleep } = useGetSleepLogs({ limit: 7 });
   const { data: stepsData, isLoading: isLoadingSteps } = useGetSteps();
+  const updateSteps = useUpdateSteps();
   const deleteWorkout = useDeleteWorkout();
   const qc = useQueryClient();
   const { toast } = useToast();
   const { t, lang } = useLang();
+  const [editingSteps, setEditingSteps] = useState(false);
+  const [stepsDraft, setStepsDraft] = useState("");
+
+  const commitSteps = () => {
+    const raw = stepsDraft.trim();
+    if (raw === "") { setEditingSteps(false); return; }
+    const val = Number(raw.replace(/[^\d]/g, ""));
+    if (!Number.isFinite(val) || val < 0 || val > 200000) {
+      toast({ title: t("home_steps_invalid"), variant: "destructive" });
+      return;
+    }
+    updateSteps.mutate({ data: { steps: val } }, {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getGetStepsQueryKey() });
+        qc.invalidateQueries({ queryKey: getGetFitnessSummaryQueryKey() });
+        toast({ title: t("home_steps_saved") });
+        setEditingSteps(false);
+      },
+      onError: () => toast({ title: t("home_steps_failed"), variant: "destructive" }),
+    });
+  };
+
+  const addSteps = (delta: number) => {
+    const cur = stepsData?.todaySteps ?? 0;
+    const next = Math.max(0, Math.min(200000, cur + delta));
+    updateSteps.mutate({ data: { steps: next } }, {
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: getGetStepsQueryKey() });
+        qc.invalidateQueries({ queryKey: getGetFitnessSummaryQueryKey() });
+      },
+      onError: () => toast({ title: t("home_steps_failed"), variant: "destructive" }),
+    });
+  };
 
   const typeLabel: Record<string, string> = {
     strength: t("fitness_strength"), cardio: t("fitness_cardio"), hiit: t("fitness_hiit"),
@@ -141,16 +175,65 @@ export default function Fitness() {
 
         {/* Steps */}
         <div className="bg-card rounded-2xl p-4 border border-border/50 hover-elevate">
-          <div className="flex items-center gap-2 mb-2">
-            <Footprints className="w-4 h-4 text-green-500" />
-            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{t("fitness_steps")}</h3>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Footprints className="w-4 h-4 text-green-500" />
+              <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{t("fitness_steps")}</h3>
+            </div>
+            {!editingSteps && (
+              <button
+                type="button"
+                onClick={() => {
+                  setStepsDraft(String(stepsData?.todaySteps ?? 0));
+                  setEditingSteps(true);
+                }}
+                className="text-[11px] font-bold text-green-600 dark:text-green-400 bg-green-500/10 hover:bg-green-500/20 px-2.5 py-1 rounded-full transition-colors press-scale"
+                data-testid="button-edit-steps-fitness"
+              >
+                {t("fitness_steps_edit") !== "fitness_steps_edit" ? t("fitness_steps_edit") : "Edit"}
+              </button>
+            )}
           </div>
           <div className="flex items-end justify-between mb-2">
-            <p className="text-3xl font-black leading-none">{(stepsData?.todaySteps ?? 0).toLocaleString()}</p>
+            {editingSteps ? (
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={200000}
+                autoFocus
+                value={stepsDraft}
+                onChange={(e) => setStepsDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { e.preventDefault(); commitSteps(); }
+                  else if (e.key === "Escape") { setEditingSteps(false); }
+                }}
+                onBlur={() => { if (!updateSteps.isPending) commitSteps(); }}
+                className="bg-transparent text-3xl font-black leading-none outline-none border-b-2 border-green-500 text-foreground p-0 w-32"
+                data-testid="input-steps-fitness"
+              />
+            ) : (
+              <p className="text-3xl font-black leading-none" data-testid="text-steps-count">{(stepsData?.todaySteps ?? 0).toLocaleString()}</p>
+            )}
             <p className="text-xs text-muted-foreground font-medium">/ {(stepsData?.stepGoal ?? 10000).toLocaleString()}</p>
           </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
+          <div className="h-2 bg-muted rounded-full overflow-hidden mb-3">
             <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${stepsPct}%` }} />
+          </div>
+          <div className="flex items-center gap-2">
+            {[500, 1000, 2500, 5000].map((delta) => (
+              <button
+                key={delta}
+                type="button"
+                onClick={() => addSteps(delta)}
+                disabled={updateSteps.isPending || editingSteps}
+                className="flex-1 flex items-center justify-center gap-1 py-2 rounded-xl bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 text-green-700 dark:text-green-400 text-xs font-bold transition-colors press-scale disabled:opacity-50"
+                data-testid={`button-add-steps-${delta}`}
+              >
+                <Plus className="w-3 h-3" />
+                {delta >= 1000 ? `${delta / 1000}k` : delta}
+              </button>
+            ))}
           </div>
         </div>
 
