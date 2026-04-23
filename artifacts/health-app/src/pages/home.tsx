@@ -589,37 +589,43 @@ export default function Home() {
         {/* XP + Coins Banner */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-yellow-500/15 via-orange-500/10 to-yellow-500/15 border border-yellow-500/20 p-4">
           <div className="absolute right-0 top-0 w-24 h-24 bg-yellow-400/10 rounded-full -translate-y-6 translate-x-6 blur-2xl" />
-          <div className="flex items-center gap-4 relative">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400/20 to-orange-500/20 border-2 border-yellow-400/40 flex items-center justify-center">
-              <p className="text-lg font-black text-yellow-400 leading-none">{progress?.level ?? dashboard.level}</p>
-            </div>
-            <div className="flex-1">
-              <p className="text-xs font-bold text-foreground">{lang === "ar" ? (activeTitle?.nameAr ?? progress?.title ?? activeTitle?.name ?? t("home_achiever")) : (progress?.title ?? activeTitle?.name ?? t("home_achiever"))}</p>
-              <div className="flex items-center gap-3 mt-1">
-                <div className="flex items-center gap-1">
-                  <Zap className="w-3 h-3 text-yellow-400" />
-                  <span className="text-xs font-black text-yellow-400">{(progress?.xp ?? dashboard.xp).toLocaleString()} {t("unit_xp")}</span>
+          <div className="relative">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-[10px] font-black text-yellow-500 dark:text-yellow-400 uppercase tracking-wider bg-yellow-500/15 border border-yellow-500/30 px-2 py-0.5 rounded-md shrink-0">
+                  {t("home_level_short") !== "home_level_short" ? t("home_level_short") : "LV"} {progress?.level ?? dashboard.level}
+                </span>
+                <p className="text-xs font-bold text-foreground truncate">
+                  {lang === "ar" ? (activeTitle?.nameAr ?? progress?.title ?? activeTitle?.name ?? t("home_achiever")) : (progress?.title ?? activeTitle?.name ?? t("home_achiever"))}
+                </p>
+              </div>
+              <Link href="/achievements" className="shrink-0">
+                <div className="flex items-center gap-1 bg-yellow-500/20 border border-yellow-500/30 px-2 py-1 rounded-full press-scale">
+                  <Trophy className="w-3 h-3 text-yellow-500 dark:text-yellow-400" />
+                  <ChevronRight className="w-3 h-3 text-yellow-500 dark:text-yellow-400 rtl-flip" />
                 </div>
-                <div className="flex items-center gap-1">
-                  <Coins className="w-3 h-3 text-yellow-400" />
-                  <span className="text-xs font-bold text-yellow-400">{progress?.coins ?? dashboard.coins} {t("home_coins")}</span>
-                </div>
+              </Link>
+            </div>
+            <div className="flex items-center gap-4 mb-2">
+              <div className="flex items-center gap-1">
+                <Zap className="w-3.5 h-3.5 text-yellow-500 dark:text-yellow-400" />
+                <span className="text-sm font-black text-yellow-600 dark:text-yellow-400">{(progress?.xp ?? dashboard.xp).toLocaleString()}</span>
+                <span className="text-[10px] font-bold text-yellow-600/70 dark:text-yellow-400/70 uppercase">{t("unit_xp")}</span>
               </div>
-              <div className="h-1.5 bg-yellow-500/20 rounded-full mt-2 overflow-hidden">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${levelInfo?.progressPct ?? 0}%` }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                />
+              <div className="flex items-center gap-1">
+                <Coins className="w-3.5 h-3.5 text-yellow-500 dark:text-yellow-400" />
+                <span className="text-sm font-black text-yellow-600 dark:text-yellow-400">{progress?.coins ?? dashboard.coins}</span>
+                <span className="text-[10px] font-bold text-yellow-600/70 dark:text-yellow-400/70 uppercase">{t("home_coins")}</span>
               </div>
             </div>
-            <Link href="/achievements" className="shrink-0">
-              <div className="flex items-center gap-1 bg-yellow-500/20 border border-yellow-500/30 px-2.5 py-1.5 rounded-full press-scale">
-                <Trophy className="w-3 h-3 text-yellow-400" />
-                <ChevronRight className="w-3 h-3 text-yellow-400 rtl-flip" />
-              </div>
-            </Link>
+            <div className="h-1.5 bg-yellow-500/20 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${levelInfo?.progressPct ?? 0}%` }}
+                transition={{ duration: 1, ease: "easeOut" }}
+              />
+            </div>
           </div>
         </div>
 
