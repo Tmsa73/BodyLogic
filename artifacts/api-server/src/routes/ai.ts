@@ -8,8 +8,14 @@ import {
   SendAiMessageResponse,
   GetAiInsightsResponse,
 } from "@workspace/api-zod";
+import OpenAI from "openai";
 
 const router: IRouter = Router();
+
+const openai = new OpenAI({
+  apiKey: process.env["AI_INTEGRATIONS_OPENAI_API_KEY"] ?? "dummy",
+  baseURL: process.env["AI_INTEGRATIONS_OPENAI_BASE_URL"],
+});
 
 function isArabicRequest(req: { headers: Record<string, string | string[] | undefined> }): boolean {
   const value = Array.isArray(req.headers["accept-language"]) ? req.headers["accept-language"][0] : req.headers["accept-language"];
@@ -183,7 +189,59 @@ router.post("/ai/messages", async (req, res): Promise<void> => {
 
   const authUser = await getUserFromRequest(req);
   const ctx = await buildUserContext(authUser?.id);
-  const responseContent = generatePersonalizedResponse(parsed.data.content, ctx, isArabicRequest(req) ? "ar" : "en");
+  const ar = isArabicRequest(req);
+
+  let responseContent: string;
+  try {
+    const recentMessages = await db
+      .select()
+      .from(aiMessagesTable)
+      .orderBy(desc(aiMessagesTable.createdAt))
+      .limit(10);
+    const history = recentMessages.reverse().map(m => ({
+      role: m.role as "user" | "assistant",
+      content: m.content,
+    }));
+
+    const systemPrompt = ar
+      ? `أنت مدرب صحي ذكي ومحفز داخل تطبيق BodyLogic. أجب باللغة العربية، بنبرة ودودة وعملية.
+ركّز فقط على: التغذية، التمارين، النوم، الترطيب، تقدم الوزن، والعادات الصحية.
+استخدم بيانات المستخدم التالية (JSON) لتخصيص ردك بدقة:
+${JSON.stringify(ctx, null, 2)}
+
+قواعد:
+- خاطب المستخدم باسم "${ctx.userName}" عند الحاجة.
+- اجعل الرد قصيرًا (2-4 جمل) وعمليًا، مع نصيحة واحدة قابلة للتنفيذ.
+- استخدم الأرقام من البيانات (سعرات، وجبات، تمارين، نوم، ماء) لجعل الإجابة شخصية.
+- إذا كان السؤال غير صحي، أعد توجيه المحادثة بلطف نحو الصحة.`
+      : `You are a smart, motivating health coach inside the BodyLogic app. Reply in English, friendly and practical.
+Focus only on: nutrition, workouts, sleep, hydration, weight progress, and healthy habits.
+Use the following user data (JSON) to personalize your reply precisely:
+${JSON.stringify(ctx, null, 2)}
+
+Rules:
+- Address the user as "${ctx.userName}" when natural.
+- Keep replies short (2-4 sentences) and practical, with one actionable tip.
+- Use real numbers from the data (calories, meals, workouts, sleep, water) so it feels personal.
+- If the question is off-topic from health, gently redirect.`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      max_tokens: 350,
+      temperature: 0.7,
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...history.slice(0, -1),
+        { role: "user", content: parsed.data.content },
+      ],
+    });
+
+    responseContent = completion.choices[0]?.message?.content?.trim()
+      || generatePersonalizedResponse(parsed.data.content, ctx, ar ? "ar" : "en");
+  } catch (err: any) {
+    console.error("AI coach error:", err?.message ?? err);
+    responseContent = generatePersonalizedResponse(parsed.data.content, ctx, ar ? "ar" : "en");
+  }
 
   const [assistantMessage] = await db.insert(aiMessagesTable).values({
     role: "assistant",
