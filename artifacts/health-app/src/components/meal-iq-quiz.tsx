@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { playGamificationSound } from "@/lib/sounds";
 import { useQueryClient } from "@tanstack/react-query";
 import { getGetProgressQueryKey, getGetDashboardQueryKey, useGetProfile } from "@workspace/api-client-react";
-import { useLang } from "@/contexts/language-context";
+import { useLang } from "@/hooks/use-lang";
 
 const QUIZ_COOLDOWN_KEY = "bodylogic-quiz-cooldown";
 const COOLDOWN_MS = 60 * 60 * 1000;

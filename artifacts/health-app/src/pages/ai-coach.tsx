@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles, Send, Dumbbell, Utensils, Moon, Heart, Brain, Zap, TrendingUp, AlertTriangle, Lightbulb, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { useLang } from "@/contexts/language-context";
+import { useLang } from "@/hooks/use-lang";
 
 const PERSONALITY_CONFIG = {
   motivator: { icon: Zap, labelKey: "ai_personality_motivator", color: "text-orange-400 border-orange-400/40 bg-orange-400/10" },

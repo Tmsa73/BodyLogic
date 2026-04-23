@@ -5,7 +5,7 @@ import {
   getGetWorkoutsQueryKey, getGetFitnessSummaryQueryKey, getGetSleepLogsQueryKey, getGetStepsQueryKey
 } from "@workspace/api-client-react";
 import { searchWorkouts, searchWorkoutHistory, saveWorkoutToHistory, getWorkoutHistory, type WorkoutItem } from "@/lib/workout-database";
-import { useLang } from "@/contexts/language-context";
+import { useLang } from "@/hooks/use-lang";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

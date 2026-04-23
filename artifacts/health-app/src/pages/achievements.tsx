@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLang } from "@/contexts/language-context";
+import { useLang } from "@/hooks/use-lang";
 import { useGetProgress, useGetProfileStats, useGetMissions } from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Trophy, Zap, Lock, CheckCircle2, Flame, Crown, Target, Shield, Brain, Sword, TrendingUp, Coins, Utensils, Dumbbell, Moon, Heart, Bot, Droplets, Sun } from "lucide-react";

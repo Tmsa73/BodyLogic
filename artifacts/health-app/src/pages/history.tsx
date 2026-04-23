@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useGetHistory, useGetSleepLogs, GetHistoryType } from "@workspace/api-client-react";
-import { useLang } from "@/contexts/language-context";
+import { useLang } from "@/hooks/use-lang";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Utensils, Dumbbell, Moon, Footprints, Droplets, TrendingUp, Calendar, ChevronDown, ChevronUp, BedDouble } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, ReferenceLine, CartesianGrid } from "recharts";

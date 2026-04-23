@@ -1,18 +1,18 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { type Lang, t as translate, type TranslationKey } from "@/lib/translations";
 
-interface LanguageContextValue {
+export interface LanguageContextValue {
   lang: Lang;
   dir: "ltr" | "rtl";
   setLang: (lang: Lang) => void;
   t: (key: TranslationKey) => string;
 }
 
-const LanguageContext = createContext<LanguageContextValue>({
+export const LanguageContext = createContext<LanguageContextValue>({
   lang: "en",
   dir: "ltr",
   setLang: () => {},
-  t: (key) => key,
+  t: (key) => translate("en", key),
 });
 
 const STORAGE_KEY = "bodylogic-lang";
@@ -37,11 +37,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const tFn = useCallback((key: TranslationKey) => translate(lang, key), [lang]);
   const value = useMemo(() => ({ lang, dir, setLang, t: tFn }), [lang, dir, setLang, tFn]);
 
-  // Apply dir + lang to the <html> element for global effect
   useEffect(() => {
     document.documentElement.lang = lang;
     document.documentElement.dir = dir;
-    // Arabic font class
     if (lang === "ar") {
       document.documentElement.classList.add("font-arabic");
     } else {
@@ -54,8 +52,4 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       {children}
     </LanguageContext.Provider>
   );
-}
-
-export function useLang() {
-  return useContext(LanguageContext);
 }

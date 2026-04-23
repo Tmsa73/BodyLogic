@@ -7,7 +7,7 @@ import { getActiveTitle, calcLevel, calcMomentumScore, getStoredTitleId } from "
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { useLang } from "@/contexts/language-context";
+import { useLang } from "@/hooks/use-lang";
 import { MealIqQuiz } from "@/components/meal-iq-quiz";
 import { MorningBriefCard } from "@/components/morning-brief-card";
 import { playGamificationSound } from "@/lib/sounds";

@@ -37,7 +37,7 @@ import { exportAllDataCsv } from "@/lib/export-data";
 import { BrandTag } from "@/components/brand-tag";
 import { useAuth } from "@/hooks/use-auth";
 import { motion, AnimatePresence } from "framer-motion";
-import { useLang } from "@/contexts/language-context";
+import { useLang } from "@/hooks/use-lang";
 import { areSoundEffectsEnabled, playGamificationSound, setSoundEffectsEnabled } from "@/lib/sounds";
 
 // ── Types ──────────────────────────────────────────────────────────

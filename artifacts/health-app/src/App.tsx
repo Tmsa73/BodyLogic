@@ -8,7 +8,7 @@ import NotFound from "@/pages/not-found";
 import { ThemeProvider } from "@/components/theme-provider";
 import AuthPage from "@/pages/auth";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
-import { useLang } from "@/contexts/language-context";
+import { useLang } from "@/hooks/use-lang";
 import { LanguageProvider } from "@/contexts/language-context";
 
 const Home = lazy(() => import("@/pages/home"));

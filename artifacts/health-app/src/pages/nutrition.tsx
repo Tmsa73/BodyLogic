@@ -4,7 +4,7 @@ import {
   getGetNutritionSummaryQueryKey, getGetMealsQueryKey, getGetMealStreakQueryKey, getGetDailyMealIQQueryKey,
   getGetProgressQueryKey,
 } from "@workspace/api-client-react";
-import { useLang } from "@/contexts/language-context";
+import { useLang } from "@/hooks/use-lang";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, Flame, Brain, Trophy, Utensils, Camera, ImagePlus, Sparkles, CheckCircle2, AlertCircle, Loader2, ChevronDown, Clock } from "lucide-react";
 import { checkMealCalories, checkProtein } from "@/lib/logic-validator";

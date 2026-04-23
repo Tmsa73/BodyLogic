@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Sparkles, ChevronRight, BookOpen, Target, Lightbulb } from "lucide-react";
 import { Link } from "wouter";
-import { useLang } from "@/contexts/language-context";
+import { useLang } from "@/hooks/use-lang";
 import { cn } from "@/lib/utils";
 
 interface MorningBrief {

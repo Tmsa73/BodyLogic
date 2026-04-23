@@ -5,7 +5,7 @@ const HIDE_FOOTER_ON = new Set<string>(["/ai-coach"]);
 import { Home, Utensils, Dumbbell, Sparkles, User, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { useLang } from "@/contexts/language-context";
+import { useLang } from "@/hooks/use-lang";
 
 export function Layout({ children }: { children: ReactNode }) {
   const [location] = useLocation();
