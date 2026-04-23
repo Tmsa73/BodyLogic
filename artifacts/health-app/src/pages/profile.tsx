@@ -240,7 +240,7 @@ export default function Profile() {
             <MeTab
               profile={profile} stats={stats} progress={progress} missions={missions}
               balance={balance} user={user} activeTitle={activeTitle} levelInfo={levelInfo}
-              bmi={bmi} bmiLabel={bmiLabel} bmiColor={bmiColor} earnedBadges={earnedBadges}
+              bmi={bmi} bmiLabel={bmiLabel} bmiColor={bmiColor} bmiValid={bmiValid} earnedBadges={earnedBadges}
               memberSince={memberSince}
             />
           </motion.div>
@@ -290,7 +290,7 @@ export default function Profile() {
 }
 
 // ── ME TAB ────────────────────────────────────────────────────────
-function MeTab({ profile, stats, progress, missions, balance, user, activeTitle, levelInfo, bmi, bmiLabel, bmiColor, earnedBadges, memberSince }: any) {
+function MeTab({ profile, stats, progress, missions, balance, user, activeTitle, levelInfo, bmi, bmiLabel, bmiColor, bmiValid, earnedBadges, memberSince }: any) {
   const [isEditing, setIsEditing] = useState(false);
   const [localAvatar, setLocalAvatar] = useState<string | null>(() => localStorage.getItem("userAvatar"));
   const [displayName, setDisplayName] = useState<string>(() => localStorage.getItem("bodylogic-display-name") || user?.name || profile?.name || "");
@@ -535,7 +535,7 @@ function MeTab({ profile, stats, progress, missions, balance, user, activeTitle,
             <EditProfileForm profile={profile} onCancel={() => setIsEditing(false)} />
           ) : (
             <div className="divide-y divide-border/50">
-              <DetailRow label={t("profile_weight")} value={weightKg > 0 ? `${profile.weight} kg` : "—"} />
+              <DetailRow label={t("profile_weight")} value={Number(profile.weight) > 0 ? `${profile.weight} kg` : "—"} />
               <DetailRow label={t("profile_height")} value={Number(profile.height) > 0 ? `${profile.height} cm` : "—"} />
               <DetailRow label={t("profile_bmi")} value={<span className={bmiColor}>{bmiValid ? `${bmi} (${bmiLabel})` : bmiLabel}</span>} />
               <DetailRow label={t("profile_activity")} value={<span>{profile.activityLevel === "sedentary" ? t("activity_sedentary") : profile.activityLevel === "lightly_active" ? t("activity_light") : profile.activityLevel === "moderately_active" ? t("activity_moderate") : profile.activityLevel === "very_active" ? t("activity_very_active") : t("activity_active")}</span>} />
