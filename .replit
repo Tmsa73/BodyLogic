@@ -4,7 +4,7 @@ modules = ["nodejs-24", "postgresql-16"]
 router = "application"
 deploymentTarget = "autoscale"
 run = ["sh", "-c", "NODE_ENV=production node --enable-source-maps artifacts/api-server/dist/index.mjs"]
-build = ["sh", "-c", "PORT=3000 BASE_PATH=/ pnpm --filter @workspace/health-app run build && pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/db run push"]
+build = ["sh", "-c", "PORT=3000 BASE_PATH=/ pnpm --filter @workspace/health-app run build && pnpm --filter @workspace/api-server run build"]
 
 [deployment.postBuild]
 args = ["pnpm", "store", "prune"]
