@@ -452,6 +452,11 @@ const translations = {
     profile_mode_activated: "mode activated",
     settings_export_started: "Export started",
     settings_cache_cleared: "Cache cleared",
+    settings_reset: "Reset progress",
+    settings_reset_desc: "Erase all logged data and start fresh",
+    settings_reset_confirm: "This will permanently delete all your meals, workouts, sleep, water, steps, XP and AI history. Continue?",
+    settings_reset_done: "Progress reset",
+    settings_reset_fail: "Reset failed",
     settings_delete_confirm: "Are you sure?",
     challenge_boss_accepted_desc: "Check notifications for updates.",
 
@@ -1044,6 +1049,11 @@ const translations = {
     profile_mode_activated: "تم التفعيل",
     settings_export_started: "بدأ التصدير",
     settings_cache_cleared: "تم مسح ذاكرة التخزين",
+    settings_reset: "إعادة تعيين التقدّم",
+    settings_reset_desc: "حذف جميع البيانات المسجّلة والبدء من جديد",
+    settings_reset_confirm: "سيتم حذف جميع وجباتك وتمارينك ونومك ومائك وخطواتك ونقاط الخبرة وسجل المساعد نهائيًا. هل تريد المتابعة؟",
+    settings_reset_done: "تمت إعادة التعيين",
+    settings_reset_fail: "فشل إعادة التعيين",
     settings_delete_confirm: "هل أنت متأكد؟",
     challenge_boss_accepted_desc: "تحقق من الإشعارات للمتابعة.",
 

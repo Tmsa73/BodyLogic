@@ -61,6 +61,7 @@ export default function AuthPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Login failed");
+      clearLocalProgress();
       login(data);
     } catch (err: any) {
       toast({ title: "Login failed", description: err.message, variant: "destructive" });

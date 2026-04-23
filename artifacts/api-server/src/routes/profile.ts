@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq, avg, count } from "drizzle-orm";
-import { db, profileTable, mealsTable, workoutsTable, sleepTable, xpLogsTable } from "@workspace/db";
+import { db, profileTable, mealsTable, workoutsTable, sleepTable, xpLogsTable, waterLogsTable, stepsTable, aiMessagesTable, bodyMeasurementsTable } from "@workspace/db";
 import {
   GetProfileResponse,
   UpdateProfileBody,
@@ -52,6 +52,20 @@ router.put("/profile", async (req, res): Promise<void> => {
     .returning();
 
   res.json(UpdateProfileResponse.parse(updatedProfile));
+});
+
+router.post("/profile/reset", async (_req, res): Promise<void> => {
+  await Promise.all([
+    db.delete(mealsTable),
+    db.delete(workoutsTable),
+    db.delete(sleepTable),
+    db.delete(waterLogsTable),
+    db.delete(stepsTable),
+    db.delete(xpLogsTable),
+    db.delete(aiMessagesTable),
+    db.delete(bodyMeasurementsTable),
+  ]);
+  res.json({ ok: true });
 });
 
 router.get("/profile/stats", async (req, res): Promise<void> => {

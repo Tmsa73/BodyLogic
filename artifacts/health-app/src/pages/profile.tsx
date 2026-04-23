@@ -1490,6 +1490,29 @@ function SettingsTab() {
         <div className="divide-y divide-border/50">
           <ActionRow label={t("settings_export")} desc={t("settings_export_desc")} icon={<Download className="w-4 h-4 text-muted-foreground" />} onClick={() => exportAllDataCsv(toast)} />
           <ActionRow label={t("settings_cache")} desc={t("settings_cache_desc")} icon={<Trash2 className="w-4 h-4 text-muted-foreground" />} onClick={() => { try { Object.keys(localStorage).filter(k => k.startsWith("bodylogic-cache-")).forEach(k => localStorage.removeItem(k)); } catch {} toast({ title: t("settings_cache_cleared") }); }} />
+          <ActionRow
+            label={t("settings_reset")}
+            desc={t("settings_reset_desc")}
+            icon={<Trash2 className="w-4 h-4 text-destructive" />}
+            danger
+            onClick={async () => {
+              if (!window.confirm(t("settings_reset_confirm"))) return;
+              try {
+                const BASE = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
+                const res = await fetch(`${BASE}/api/profile/reset`, { method: "POST", credentials: "include" });
+                if (!res.ok) throw new Error("Reset failed");
+                try {
+                  Object.keys(localStorage).forEach((k) => {
+                    if (k.startsWith("bodylogic-") || k === "userAvatar") localStorage.removeItem(k);
+                  });
+                } catch {}
+                toast({ title: t("settings_reset_done") });
+                setTimeout(() => window.location.reload(), 600);
+              } catch (e: any) {
+                toast({ title: t("settings_reset_fail"), description: e.message, variant: "destructive" });
+              }
+            }}
+          />
           <ActionRow label={t("settings_delete")} desc={t("settings_delete_desc")} icon={<Trash2 className="w-4 h-4 text-destructive" />} onClick={() => toast({ title: t("settings_delete_confirm"), variant: "destructive" })} danger />
         </div>
       </SettingsSection>
