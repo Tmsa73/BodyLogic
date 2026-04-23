@@ -17,13 +17,12 @@
       }
       #app-splash .splash-inner { display: flex; flex-direction: column; align-items: center; gap: 18px; }
       #app-splash .splash-logo {
-        width: 72px; height: 72px; border-radius: 20px;
-        background: linear-gradient(135deg, #22c55e 0%, #06b6d4 100%);
+        width: 96px; height: 96px;
         display: flex; align-items: center; justify-content: center;
-        font-weight: 900; font-size: 32px; color: #0a0a0b;
-        box-shadow: 0 12px 40px rgba(34,197,94,0.35);
+        filter: drop-shadow(0 12px 40px rgba(34,197,94,0.45));
         animation: splash-pulse 1.4s ease-in-out infinite;
       }
+      #app-splash .splash-logo img { width: 100%; height: 100%; object-fit: contain; }
       #app-splash .splash-text { font-size: 13px; font-weight: 600; color: #a1a1aa; letter-spacing: 0.04em; }
       #app-splash .splash-dots { display: flex; gap: 6px; }
       #app-splash .splash-dots span {
@@ -47,7 +46,7 @@
     <div id="root"></div>
     <div id="app-splash">
       <div class="splash-inner">
-        <div class="splash-logo">B</div>
+        <div class="splash-logo"><img src="/bodylogic-logo.png" alt="BodyLogic" /></div>
         <div class="splash-text">BodyLogic</div>
         <div class="splash-dots"><span></span><span></span><span></span></div>
       </div>

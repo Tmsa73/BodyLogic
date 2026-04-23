@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "9XDZhwu1BSlEZOgEqoRMf"
+uri = "file://artifacts/health-app/public/bodylogic-logo.png"
+type = "image"
+title = "bodylogic app logo"

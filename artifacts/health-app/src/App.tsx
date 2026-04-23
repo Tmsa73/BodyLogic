@@ -34,9 +34,11 @@ function AppLoader() {
   return (
     <div className="min-h-[100dvh] flex items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center animate-pulse">
-          <span className="text-background text-2xl font-black">B</span>
-        </div>
+        <img
+          src={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/bodylogic-logo.png`}
+          alt="BodyLogic"
+          className="w-20 h-20 object-contain animate-pulse drop-shadow-[0_8px_24px_rgba(34,197,94,0.45)]"
+        />
         <p className="text-sm text-muted-foreground">{t("common_loading")}</p>
       </div>
     </div>
