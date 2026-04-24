@@ -216,7 +216,7 @@ router.post("/nutrition/analyze-food-image", async (req, res): Promise<void> => 
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-5.4",
-      max_tokens: 800,
+      max_completion_tokens: 1500,
       response_format: { type: "json_object" },
       messages: [
         {
