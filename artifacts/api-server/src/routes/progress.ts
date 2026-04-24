@@ -43,9 +43,13 @@ async function computeActivityStreak(): Promise<{ current: number; longest: numb
   for (const r of stepsRows) {
     if (r.d && Number(r.c ?? 0) > 0) days.add(String(r.d));
   }
-  // Count account creation day as the first active day so a fresh user starts at streak = 1.
+  // If the user has a profile (i.e. they've signed up and are using the app),
+  // count both their join day AND today as active days so a fresh user starts at streak = 1.
   const profiles = await db.select({ d: profileTable.createdAt }).from(profileTable).limit(1);
-  if (profiles[0]?.d) days.add(new Date(profiles[0].d).toISOString().split("T")[0]!);
+  if (profiles.length > 0) {
+    if (profiles[0]?.d) days.add(new Date(profiles[0].d).toISOString().split("T")[0]!);
+    days.add(new Date().toISOString().split("T")[0]!);
+  }
   if (days.size === 0) return { current: 0, longest: 0 };
   const today = new Date().toISOString().split("T")[0]!;
   let current = 0;
