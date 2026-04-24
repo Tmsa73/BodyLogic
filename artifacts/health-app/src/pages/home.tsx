@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLang } from "@/hooks/use-lang";
 import { MealIqQuiz } from "@/components/meal-iq-quiz";
 import { MorningBriefCard } from "@/components/morning-brief-card";
+import { BrandTag } from "@/components/brand-tag";
 import { playGamificationSound } from "@/lib/sounds";
 import { getFoodHistory, saveFoodToHistory, type FoodHistoryItem } from "@/lib/food-database";
 
