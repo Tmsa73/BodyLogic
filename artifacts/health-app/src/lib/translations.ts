@@ -594,6 +594,7 @@ const translations = {
     rewards_unlocks_at: "Unlocks at Level",
     mission_personal_desc: "AI-guided personal challenges based on your behavior patterns.",
     unit_years: "years",
+    unit_years_short: "y",
     measurements_title: "Body Measurements",
     measurements_subtitle: "Track body changes beyond scale weight",
     measurements_add: "Add measurements",
@@ -1136,6 +1137,8 @@ const translations = {
 
     // Units
     unit_kcal: "سعرة",
+    unit_years: "سنة",
+    unit_years_short: "س",
     unit_cal: "سعرة",
     unit_l: "لتر",
     unit_ml: "مل",
