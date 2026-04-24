@@ -89,12 +89,7 @@ export default function Achievements() {
   return (
     <div className="min-h-full bg-background pb-24">
       <div className="p-5 space-y-5">
-        {/* Header */}
-        <header className="pt-2">
-          <BrandTag className="mb-1" />
-          <h1 className="text-2xl font-black tracking-tight gradient-text">{t("profile_tab_rewards")}</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{t("rewards_progress")} • {completionPct}%</p>
-        </header>
+        <BrandTag className="pt-2" />
 
         {/* Hero Card */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/20 via-background to-secondary/20 border border-primary/30 p-5">

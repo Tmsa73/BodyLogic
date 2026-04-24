@@ -68,6 +68,9 @@ export interface GamificationStats {
 }
 
 export const ALL_ACHIEVEMENTS: Achievement[] = [
+  // ─── WELCOME ──────────────────────────────────────────────────────
+  { id: "welcome", name: "Welcome Aboard", nameAr: "مرحبًا بك", description: "Join BodyLogic", descAr: "انضم إلى BodyLogic", icon: "🎉", category: "milestones", xpReward: 25, tier: "bronze", condition: () => true },
+  { id: "streak_started", name: "Day One", nameAr: "اليوم الأول", description: "Start your activity streak", descAr: "ابدأ سلسلة نشاطك", icon: "🔥", category: "milestones", xpReward: 25, tier: "bronze", condition: s => s.currentStreak >= 1 },
   // ─── NUTRITION ────────────────────────────────────────────────────
   { id: "first_meal", name: "First Bite", nameAr: "أولى لقمة", description: "Log your very first meal", descAr: "سجّل أول وجبة لك", icon: "🍽️", category: "nutrition", xpReward: 50, tier: "bronze", condition: s => s.totalMeals >= 1 },
   { id: "meals_5", name: "Getting Started", nameAr: "البداية", description: "Log 5 meals", descAr: "سجّل ٥ وجبات", icon: "🥗", category: "nutrition", xpReward: 75, tier: "bronze", condition: s => s.totalMeals >= 5 },
